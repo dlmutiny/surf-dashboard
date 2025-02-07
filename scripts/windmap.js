@@ -1,46 +1,80 @@
-const map = L.map("windMap", { center: [37, -122], zoom: 5 });
+// Initialize the Leaflet map
+const map = L.map("windMap", {
+    center: [37, -122], 
+    zoom: 5,
+    zoomControl: false,
+    preferCanvas: true,
+    maxZoom: 10,
+    minZoom: 3,
+});
 
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-    attribution: "© ESRI"
+// Add OpenStreetMap Tiles
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+    maxZoom: 10
 }).addTo(map);
 
+// Force a tile refresh to fix missing sections
+map.on("load", function () {
+    setTimeout(() => {
+        map.invalidateSize();
+        map.eachLayer(layer => {
+            if (layer instanceof L.TileLayer) {
+                layer.redraw();
+            }
+        });
+    }, 1000);
+});
+
+// Fetch and visualize wind data
 async function updateWindMap() {
     try {
+        // Fetch Marine Data (Wave Height & Wave Period)
         const marineResponse = await fetch(
-    "https://marine-api.open-meteo.com/v1/marine?latitude=37&longitude=-122&hourly=wave_height,wave_period&timezone=auto"
-);
-const marineData = await marineResponse.json();
+            "https://marine-api.open-meteo.com/v1/marine?latitude=37&longitude=-122&hourly=wave_height,wave_period&timezone=auto"
+        );
+        const marineData = await marineResponse.json();
 
-const windResponse = await fetch(
-    "https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto"
-);
-const windData = await windResponse.json();
+        // Fetch Wind Data Separately from Weather API
+        const windResponse = await fetch(
+            "https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto"
+        );
+        const windData = await windResponse.json();
 
-// Extract marine data
-const waveHeight = marineData.hourly?.wave_height || [];
-const wavePeriod = marineData.hourly?.wave_period || [];
+        if (!marineData.hourly || !marineData.hourly.wave_height) {
+            console.error("❌ Wave height data is missing!");
+            return;
+        }
 
-// Extract wind data
-const windSpeed = windData.hourly?.windspeed_10m || [];
-const windDirection = windData.hourly?.winddirection_10m || [];
+        if (!windData.hourly || !windData.hourly.windspeed_10m) {
+            console.error("❌ Wind data is missing!");
+            return;
+        }
 
-        const data = await response.json();
-        if (!data.hourly || !data.hourly.wind_speed) return;
+        // Extract Wind Data
+        const windSpeed = windData.hourly.windspeed_10m[0]; // Latest wind speed
+        const windDirection = windData.hourly.winddirection_10m[0]; // Latest wind direction
 
+        // Add Wind Visualization (Remove Old Markers First)
         map.eachLayer(layer => {
-            if (layer instanceof L.CircleMarker) map.removeLayer(layer);
+            if (layer instanceof L.CircleMarker) {
+                map.removeLayer(layer);
+            }
         });
 
-        data.hourly.wind_speed.forEach((speed, i) => {
-            let lat = 37 + (Math.random() * 5 - 2.5);
-            let lon = -122 + (Math.random() * 5 - 2.5);
-            L.circleMarker([lat, lon], { radius: speed / 3, color: `hsl(${240 - speed * 10}, 100%, 50%)`, fillOpacity: 0.7 }).addTo(map);
-        });
+        // Add a marker for wind direction
+        L.circleMarker([37, -122], {
+            radius: windSpeed / 3,
+            color: `hsl(${240 - windSpeed * 10}, 100%, 50%)`,
+            fillOpacity: 0.7,
+        }).addTo(map)
+        .bindPopup(`💨 Wind: ${windSpeed} km/h<br>🧭 Direction: ${windDirection}°`);
 
     } catch (error) {
-        console.error("Wind map update failed:", error);
+        console.error("⚠️ Wind map update failed:", error);
     }
 }
 
+// Initial wind map load and update every 10 minutes
 updateWindMap();
 setInterval(updateWindMap, 600000);
