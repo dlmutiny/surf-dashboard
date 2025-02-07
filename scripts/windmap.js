@@ -6,7 +6,24 @@ L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 
 async function updateWindMap() {
     try {
-        const response = await fetch(`${API_CONFIG.openMeteoURL}?latitude=37&longitude=-122&hourly=wind_speed,wind_direction,wave_height,wave_period&timezone=auto`);
+        const marineResponse = await fetch(
+    "https://marine-api.open-meteo.com/v1/marine?latitude=37&longitude=-122&hourly=wave_height,wave_period&timezone=auto"
+);
+const marineData = await marineResponse.json();
+
+const windResponse = await fetch(
+    "https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto"
+);
+const windData = await windResponse.json();
+
+// Extract marine data
+const waveHeight = marineData.hourly?.wave_height || [];
+const wavePeriod = marineData.hourly?.wave_period || [];
+
+// Extract wind data
+const windSpeed = windData.hourly?.windspeed_10m || [];
+const windDirection = windData.hourly?.winddirection_10m || [];
+
         const data = await response.json();
         if (!data.hourly || !data.hourly.wind_speed) return;
 
