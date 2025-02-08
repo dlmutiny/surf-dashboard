@@ -28,13 +28,11 @@ async function updateWindOverlay() {
         const data = await response.json();
         console.log("Wind Data Received:", data);
 
-        // Check if data structure is valid
         if (!data.hourly || !data.hourly.wind_speed_10m || !data.hourly.winddirection_10m) {
             console.error("Invalid wind data format:", data);
             return;
         }
 
-        // Transform data into a format Leaflet-Velocity can use
         const windData = {
             uComponent: {
                 header: { parameterCategory: 2, parameterNumber: 2, dx: 0.5, dy: 0.5, lo1: -125, la1: 35, nx: 11, ny: 9 },
@@ -54,8 +52,14 @@ async function updateWindOverlay() {
             return;
         }
 
-        // Add wind layer to the map
-        L.velocityLayer({
+        // Ensure Leaflet-Velocity is properly defined
+        if (typeof L.velocityLayer !== "function") {
+            console.error("Leaflet-Velocity is not loaded correctly.");
+            return;
+        }
+
+        // Add wind layer
+        const windLayer = L.velocityLayer({
             displayValues: true,
             displayOptions: {
                 velocityType: "Global Wind",
@@ -63,9 +67,11 @@ async function updateWindOverlay() {
                 emptyString: "No wind data"
             },
             data: windData
-        }).addTo(map);
+        });
 
+        windLayer.addTo(map);
         console.log("Wind Overlay Updated Successfully!");
+
     } catch (error) {
         console.error("Error fetching wind data:", error);
     }
