@@ -1,23 +1,14 @@
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM fully loaded. Initializing map...");
 
-    // Ensure the map container exists before proceeding
-    const mapContainer = document.getElementById("map");
-    if (!mapContainer) {
-        console.error("Map container not found! Make sure there is a <div id='map'></div> in your HTML.");
-        return;
-    }
-
-    // Initialize Leaflet map
-    var map = L.map('map').setView([37.5, -122.5], 6);
-    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.opentopomap.org/">OpenTopoMap</a> contributors'
-    }).addTo(map);
+    // Initialize Leaflet Map
+    const map = L.map("windMap").setView([37, -122], 5);
+    L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png").addTo(map);
 
     console.log("Map initialized successfully.");
 
-    // Fetch and overlay wind data
-    await updateWindOverlay();
+    // Fetch wind data and update overlay
+    updateWindOverlay();
 });
 
 async function updateWindOverlay() {
@@ -52,9 +43,9 @@ async function updateWindOverlay() {
             return;
         }
 
-        // Ensure Leaflet-Velocity is properly defined
+        // Ensure Leaflet-Velocity is properly loaded
         if (typeof L.velocityLayer !== "function") {
-            console.error("Leaflet-Velocity is not loaded correctly.");
+            console.error("Leaflet-Velocity is NOT loaded correctly.");
             return;
         }
 
