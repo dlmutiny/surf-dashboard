@@ -38,21 +38,21 @@ function displaySurfAlerts(data) {
     const alertsList = document.getElementById("alertsList");
     alertsList.innerHTML = "";
 
-    if (!data || !data.properties || !data.properties.periods) {
-        console.error("Invalid Weather.gov data format.");
+    if (!data || !data.properties || !data.properties.periods || data.properties.periods.length === 0) {
+        console.error("Invalid Weather.gov data format or missing periods.");
         return;
     }
 
-    const forecast = data.properties.periods[0];  // Latest forecast period
+    const forecast = data.properties.periods[0]; // Latest forecast period
     const windDir = forecast.windDirection || "Unknown";
 
     // **Fix: Extract Rain Probability Properly**
-    let rainChance = forecast.probabilityOfPrecipitation?.value !== null
+    let rainChance = forecast.probabilityOfPrecipitation?.value !== undefined
         ? `${forecast.probabilityOfPrecipitation.value}%`
         : "No Data";
 
     // **Fix: Extract Swell Height Properly**
-    let swellHeight = forecast.waveHeight?.value !== null
+    let swellHeight = forecast.waveHeight?.value !== undefined
         ? `${forecast.waveHeight.value} ft`
         : "No Data";
 
