@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surf Dashboard</title>
+    <title>Surf Forecast Dashboard</title>
 
-    <!-- Leaflet Map CSS -->
+    <!-- Leaflet CSS (Required for Windy Map) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="styles/main.css">
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <!-- Windy API -->
     <script src="https://api.windy.com/assets/map-forecast/libBoot.js"></script>
 
@@ -27,8 +24,11 @@
     <!-- Windy Map Container -->
     <div id="windyMap" style="height: 500px; width: 100%;"></div>
 
-    <!-- Surf Spot Alerts -->
-    <div id="surfAlerts" style="padding: 20px; background: #f8f8f8; border-radius: 5px;"></div>
+    <!-- Alerts Section -->
+    <div id="surfAlerts" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+        <h2>Surf Spot Alerts</h2>
+        <ul id="alertsList"></ul>
+    </div>
 
     <!-- Include Scripts -->
     <script src="scripts/windmap.js"></script>
