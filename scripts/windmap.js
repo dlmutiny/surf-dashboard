@@ -1,31 +1,30 @@
-console.log("Initializing Windy Map...");
+//  y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH
 
-// ✅ Ensure Windy API is loaded before running `windyInit`
-if (typeof windyInit === "undefined") {
-    console.error("Windy API is not loaded. Check if libBoot.js is included correctly.");
-} else {
-    console.log("Windy API loaded successfully!");
 
-    // Windy API Configuration
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM fully loaded. Initializing Windy map...");
+
+    if (typeof windyInit !== "function") {
+        console.error("Windy API is not loaded. Check if libBoot.js is included correctly.");
+        return;
+    }
+
     const options = {
-        key: 'y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH', // 🔴 Replace with your actual Windy API key
-        lat: 36.985695,
+        key: "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH", // Replace with your API Key
+        lat: 36.985695, // Example: Santa Cruz, CA
         lon: -122.00287,
-        zoom: 5
+        zoom: 8,
+        overlay: "wind",
     };
 
-    // ✅ Initialize Windy API properly
-    windyInit(options, function (windyAPI) {
+    windyInit(options, (windyAPI) => {
         console.log("Windy API successfully initialized!");
-
-        const { map, store } = windyAPI;
-
-        if (!map) {
-            console.error("Windy Map could not be initialized!");
-            return;
-        }
-
+        
+        const { map } = windyAPI;
         console.log("Windy Map initialized successfully.");
-        store.set("overlay", "wind"); // Enable Wind Overlay
+
+        // Optional: Add other overlays if needed
+        const overlays = windyAPI.store.get("overlays");
+        console.log("Available Overlays:", overlays);
     });
-}
+});
