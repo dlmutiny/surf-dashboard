@@ -5,8 +5,9 @@ const map = L.map("windMap", {
     zoomControl: false,
     preferCanvas: true,
     maxZoom: 10,
-    minZoom: 3,
-});
+    minZoom: 3
+}).setView([37, -122], 5);
+
 
 // Add OpenStreetMap Tiles
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
