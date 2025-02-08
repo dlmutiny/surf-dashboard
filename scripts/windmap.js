@@ -1,4 +1,3 @@
-// Load Windy-Style Wind Visualization Using Leaflet-Velocity
 let map = L.map("windMap", {
     center: [37, -122], 
     zoom: 5,
@@ -14,10 +13,8 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 10
 }).addTo(map);
 
-// Wind Overlay Variable
 let windLayer;
 
-// Function to Fetch and Render Wind Data
 async function updateWindOverlay() {
     try {
         console.log("Fetching Wind Data...");
@@ -36,38 +33,38 @@ async function updateWindOverlay() {
         const windSpeedArray = windData.hourly.windspeed_10m;
         const windDirectionArray = windData.hourly.winddirection_10m;
 
-        // Set a fixed grid for visualization
-        const latStart = 36.5, latEnd = 38.5, lonStart = -123.5, lonEnd = -121.5;
+        // Define Grid
+        const latStart = 35.0, latEnd = 39.0, lonStart = -125.0, lonEnd = -120.0;
         const gridStep = 0.5;
-        let gridData = [];
+        let uComp = [], vComp = [], gridData = [];
 
-        // Generate wind grid points
+        // Generate wind grid
         for (let lat = latStart; lat <= latEnd; lat += gridStep) {
             for (let lon = lonStart; lon <= lonEnd; lon += gridStep) {
-                const randomIndex = Math.floor(Math.random() * windSpeedArray.length);
-                const windSpeed = windSpeedArray[randomIndex];
-                const windDir = windDirectionArray[randomIndex];
+                const index = Math.floor(Math.random() * windSpeedArray.length);
+                const windSpeed = windSpeedArray[index];
+                const windDir = windDirectionArray[index];
 
-                // Convert to U/V components
+                // Convert wind speed and direction to U/V components
                 const u = windSpeed * Math.cos((windDir * Math.PI) / 180);
                 const v = windSpeed * Math.sin((windDir * Math.PI) / 180);
 
+                uComp.push(u);
+                vComp.push(v);
                 gridData.push({ lat, lon, u, v });
             }
         }
 
-        // Format data properly for Leaflet-Velocity
+        // Format data for Leaflet-Velocity
         const velocityData = {
-            data: [
-                {
-                    header: { parameterNumberName: "eastward_wind", dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
-                    data: gridData.map((point) => point.u)
-                },
-                {
-                    header: { parameterNumberName: "northward_wind", dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
-                    data: gridData.map((point) => point.v)
-                }
-            ]
+            uComponent: {
+                header: { parameterCategory: 2, parameterNumber: 2, dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
+                data: uComp
+            },
+            vComponent: {
+                header: { parameterCategory: 2, parameterNumber: 3, dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
+                data: vComp
+            }
         };
 
         // Remove old wind layer if present
@@ -79,7 +76,7 @@ async function updateWindOverlay() {
         windLayer = L.velocityLayer({
             displayValues: true,
             displayOptions: {
-                velocityType: "Wind",
+                velocityType: "Global Wind",
                 position: "bottomleft",
                 emptyString: "No wind data",
                 angleConvention: "from",
@@ -88,7 +85,7 @@ async function updateWindOverlay() {
             data: velocityData,
             minVelocity: 0,
             maxVelocity: 50,
-            velocityScale: 0.005
+            velocityScale: 0.01
         }).addTo(map);
 
         console.log("✅ Wind Overlay Updated Successfully!");
@@ -97,6 +94,6 @@ async function updateWindOverlay() {
     }
 }
 
-// Update Wind Overlay Every 10 Minutes
+// Refresh Wind Overlay Every 10 Minutes
 updateWindOverlay();
 setInterval(updateWindOverlay, 600000);
