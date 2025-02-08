@@ -20,10 +20,10 @@ const surfSpots = [
 async function fetchNOAAData() {
     try {
         const response = await fetch(PROXY_URL + NOAA_API_URL);
-        const data = await response.json();
-        return data;
+        if (!response.ok) throw new Error("Failed to fetch NOAA data");
+        return await response.json();
     } catch (error) {
-        console.error("Error fetching NOAA data:", error);
+        console.error(error.message);
         return null;
     }
 }
@@ -33,10 +33,10 @@ async function fetchWindyData(lat, lon) {
         const response = await fetch(
             `${WINDY_API_URL}?lat=${lat}&lon=${lon}&model=gfs&parameters=wind,swell&key=${WINDY_API_KEY}`
         );
-        const data = await response.json();
-        return data;
+        if (!response.ok) throw new Error("Failed to fetch Windy API data");
+        return await response.json();
     } catch (error) {
-        console.error("Error fetching Windy API data:", error);
+        console.error(error.message);
         return null;
     }
 }
@@ -72,16 +72,9 @@ async function displaySurfAlerts() {
         }
     });
 
-    const alertBox = document.getElementById("surfAlerts");
-
-    if (bestSpot) {
-        alertBox.innerHTML = `<h2>Best Surf Spot: ${bestSpot}</h2>
-                              <p>${bestDescription}</p>`;
-        alertBox.style.backgroundColor = "lightgreen";
-    } else {
-        alertBox.innerHTML = `<h2>No ideal conditions found.</h2>`;
-        alertBox.style.backgroundColor = "lightcoral";
-    }
+    document.getElementById("surfAlerts").innerHTML = bestSpot
+        ? `<h2>Best Surf Spot: ${bestSpot}</h2><p>${bestDescription}</p>`
+        : `<h2>No ideal conditions found.</h2>`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
