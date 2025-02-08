@@ -32,21 +32,25 @@ async function updateWindOverlay() {
         // Define grid parameters
         const latStart = 35.0, latEnd = 39.0, lonStart = -125.0, lonEnd = -120.0;
         const gridStep = 0.5;
-        let uComp = [], vComp = [];
+        const nx = Math.round((lonEnd - lonStart) / gridStep) + 1;
+        const ny = Math.round((latEnd - latStart) / gridStep) + 1;
+        let uComp = new Array(nx * ny).fill(0); // Ensure the exact length
+        let vComp = new Array(nx * ny).fill(0);
 
-        // Generate wind grid
+        let i = 0;
         for (let lat = latStart; lat <= latEnd; lat += gridStep) {
             for (let lon = lonStart; lon <= lonEnd; lon += gridStep) {
                 const index = Math.floor(Math.random() * windData.hourly.windspeed_10m.length);
-                const windSpeed = windData.hourly.windspeed_10m[index];
-                const windDir = windData.hourly.winddirection_10m[index];
+                const windSpeed = windData.hourly.windspeed_10m[index] || 0;
+                const windDir = windData.hourly.winddirection_10m[index] || 0;
 
                 // Convert wind speed and direction to U/V components
                 const u = windSpeed * Math.cos((windDir * Math.PI) / 180);
                 const v = windSpeed * Math.sin((windDir * Math.PI) / 180);
 
-                uComp.push(u);
-                vComp.push(v);
+                uComp[i] = u;
+                vComp[i] = v;
+                i++;
             }
         }
 
@@ -60,8 +64,8 @@ async function updateWindOverlay() {
                     dy: gridStep, 
                     lo1: lonStart, 
                     la1: latStart,
-                    nx: Math.round((lonEnd - lonStart) / gridStep) + 1, // Grid size X
-                    ny: Math.round((latEnd - latStart) / gridStep) + 1  // Grid size Y
+                    nx: nx, 
+                    ny: ny
                 },
                 data: uComp
             },
@@ -73,8 +77,8 @@ async function updateWindOverlay() {
                     dy: gridStep, 
                     lo1: lonStart, 
                     la1: latStart,
-                    nx: Math.round((lonEnd - lonStart) / gridStep) + 1,
-                    ny: Math.round((latEnd - latStart) / gridStep) + 1
+                    nx: nx,
+                    ny: ny
                 },
                 data: vComp
             }
