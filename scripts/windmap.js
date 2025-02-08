@@ -1,4 +1,5 @@
-// Initialize the Leaflet map
+import "leaflet-velocity"; // Wind visualization plugin
+
 const map = L.map("windMap", {
     center: [37, -122], 
     zoom: 5,
@@ -8,14 +9,25 @@ const map = L.map("windMap", {
     minZoom: 3
 }).setView([37, -122], 5);
 
-// Add OpenStreetMap Tiles
+// Add OpenStreetMap Tiles as Base
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 10
 }).addTo(map);
 
-// Function to fetch and visualize wind data
-async function updateWindMap() {
+// Add Heatmap Overlay (Temperature from OpenWeather)
+const heatmapLayer = L.tileLayer(
+    "https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=YOUR_OPENWEATHER_API_KEY",
+    {
+        attribution: "&copy; OpenWeatherMap",
+        opacity: 0.5
+    }
+).addTo(map);
+
+// Wind Velocity Layer (for Windy-Style Overlays)
+let windLayer;
+
+async function updateWindOverlay() {
     try {
         console.log("Fetching Wind Data...");
         const windResponse = await fetch(
@@ -24,59 +36,57 @@ async function updateWindMap() {
         const windData = await windResponse.json();
         console.log("✅ Wind Data Received:", windData);
 
-        const windSpeedArray = windData.hourly.windspeed_10m;
-        const windDirectionArray = windData.hourly.winddirection_10m;
-
-        if (!windSpeedArray || windSpeedArray.length === 0) {
-            console.error("❌ Wind Speed Data Missing!");
+        if (!windData.hourly || !windData.hourly.windspeed_10m) {
+            console.error("❌ Wind Data Missing!");
             return;
         }
 
-        if (!windDirectionArray || windDirectionArray.length === 0) {
-            console.error("❌ Wind Direction Data Missing!");
-            return;
+        // Convert API Data to Leaflet Velocity Format
+        const windSpeed = windData.hourly.windspeed_10m;
+        const windDirection = windData.hourly.winddirection_10m;
+        const numPoints = windSpeed.length;
+
+        const windArray = [];
+        for (let i = 0; i < numPoints; i++) {
+            windArray.push({
+                lat: 37,
+                lon: -122,
+                u: windSpeed[i] * Math.cos((windDirection[i] * Math.PI) / 180),
+                v: windSpeed[i] * Math.sin((windDirection[i] * Math.PI) / 180)
+            });
         }
 
-        // Extract latest data
-        const windSpeed = windSpeedArray[0];
-        const windDirection = windDirectionArray[0];
+        console.log("✅ Wind Data Processed for Overlay");
 
-        console.log(`✅ Wind Speed: ${windSpeed} km/h, Direction: ${windDirection}°`);
+        // Remove existing Wind Layer if present
+        if (windLayer) {
+            map.removeLayer(windLayer);
+        }
 
-        // Remove old markers
-        map.eachLayer(layer => {
-            if (layer instanceof L.CircleMarker || layer instanceof L.Polyline) {
-                map.removeLayer(layer);
+        // Create Wind Layer
+        windLayer = L.velocityLayer({
+            displayValues: true,
+            displayOptions: {
+                velocityType: "Wind",
+                position: "bottomleft",
+                emptyString: "No wind data",
+                angleConvention: "from",
+                showDirectionLabel: true
+            },
+            data: {
+                u: windSpeed.map((ws, i) => ws * Math.cos((windDirection[i] * Math.PI) / 180)),
+                v: windSpeed.map((ws, i) => ws * Math.sin((windDirection[i] * Math.PI) / 180)),
+                lat: 37,
+                lon: -122
             }
-        });
-
-        // Add a marker for wind data
-        const windMarker = L.circleMarker([37, -122], {
-            radius: windSpeed / 3,
-            color: `hsl(${240 - windSpeed * 10}, 100%, 50%)`,
-            fillOpacity: 0.7,
         }).addTo(map);
 
-        // Create a wind direction arrow
-        const windEndLat = 37 + 0.1 * Math.cos((windDirection * Math.PI) / 180);
-        const windEndLon = -122 + 0.1 * Math.sin((windDirection * Math.PI) / 180);
-
-        const windArrow = L.polyline([[37, -122], [windEndLat, windEndLon]], {
-            color: "blue",
-            weight: 3,
-            opacity: 0.7,
-            dashArray: "5, 5",
-        }).addTo(map);
-
-        windMarker.bindPopup(`💨 Wind: ${windSpeed} km/h<br>🧭 Direction: ${windDirection}°`);
-
-        console.log("✅ Wind Visualization Updated Successfully!");
-
+        console.log("✅ Wind Overlay Updated Successfully!");
     } catch (error) {
-        console.error("⚠️ Wind visualization update failed:", error);
+        console.error("⚠️ Wind Overlay Update Failed:", error);
     }
 }
 
-// Run updates every 10 minutes
-updateWindMap();
-setInterval(updateWindMap, 600000);
+// Update Wind Overlay Every 10 Minutes
+updateWindOverlay();
+setInterval(updateWindOverlay, 600000);
