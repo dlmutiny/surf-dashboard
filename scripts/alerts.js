@@ -1,21 +1,19 @@
-const STORMGLASS_API_KEY = "711783d0-e669-11ef-9159-0242ac130003-71178470-e669-11ef-9159-0242ac130003";
-
+const stormglassAPIKey = "711783d0-e669-11ef-9159-0242ac130003-71178470-e669-11ef-9159-0242ac130003";
 const surfSpots = [
-    { name: "The Hook", lat: 36.9514, lon: -121.9664, swell: ["W", "NW", "S"], wind: ["E", "NW", "Glassy"], tide: ["Incoming", "Medium"] },
-    { name: "Jack’s (38th St.)", lat: 36.9525, lon: -121.9652, swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "Glassy"], tide: ["Low"] },
-    { name: "Capitola", lat: 36.9741, lon: -121.9535, swell: ["S", "SSW", "W"], wind: ["NW", "N", "Glassy"], tide: ["Medium"] },
-    { name: "Pleasure Point", lat: 36.9532, lon: -121.9643, swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "Glassy"], tide: ["Incoming", "Medium"] },
-    { name: "26th Ave.", lat: 36.9547, lon: -121.9603, swell: ["SW", "W", "NW"], wind: ["E"], tide: ["Low Incoming"] },
-    { name: "Manresa", lat: 36.9401, lon: -121.8723, swell: ["W", "NW", "SW"], wind: ["E", "Glassy"], tide: ["Any", "Incoming"] },
-    { name: "Steamer Lane", lat: 36.9512, lon: -122.0262, swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "Glassy"], tide: ["Low", "Medium", "Incoming"] },
+    { name: "The Hook", lat: 36.9514, lng: -121.9664, swell: ["W", "NW", "S"], wind: ["E", "NW", "Glassy"], tide: "Incoming to Medium" },
+    { name: "Jack’s (38th St.)", lat: 36.9525, lng: -121.9652, swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "Glassy"], tide: "Low" },
+    { name: "Capitola", lat: 36.9741, lng: -121.9535, swell: ["S", "SSW", "W"], wind: ["NW", "N", "Glassy"], tide: "Medium" },
+    { name: "Pleasure Point", lat: 36.9532, lng: -121.9643, swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "Glassy"], tide: "Incoming, Medium" },
+    { name: "26th Ave.", lat: 36.9547, lng: -121.9603, swell: ["SW", "W", "NW"], wind: ["E"], tide: "Low to Incoming" },
+    { name: "Manresa", lat: 36.9401, lng: -121.8723, swell: ["W", "NW", "SW"], wind: ["E", "Glassy"], tide: "Prefers Incoming" },
+    { name: "Steamer Lane", lat: 36.9512, lng: -122.0262, swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "Glassy"], tide: "Incoming, Low to Medium" },
 ];
 
-async function fetchStormglassData(lat, lon) {
-    const url = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lon}&params=windDirection,swellDirection,tide&source=noaa`;
-
+async function fetchStormglassData(lat, lng) {
+    const url = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lng}&params=windDirection,swellDirection,swellHeight,tideHeight`;
     try {
         const response = await fetch(url, {
-            headers: { "Authorization": STORMGLASS_API_KEY }
+            headers: { "Authorization": stormglassAPIKey },
         });
 
         if (!response.ok) {
@@ -23,47 +21,52 @@ async function fetchStormglassData(lat, lon) {
         }
 
         const data = await response.json();
-        return data.hours[0]; // Get data for the first available time slot
+        return data;
     } catch (error) {
         console.error("Error fetching Stormglass data:", error);
         return null;
     }
 }
 
-function degreesToCardinal(degrees) {
-    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    return directions[Math.round(degrees / 45) % 8];
+function convertWindDirection(degrees) {
+    const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+    return directions[Math.round(degrees / 22.5) % 16];
 }
 
 async function displaySurfAlerts() {
-    const alertsList = document.getElementById("alerts-list");
-    alertsList.innerHTML = "";
+    const alertsContainer = document.getElementById("surf-alerts");
+    alertsContainer.innerHTML = "";
 
     for (const spot of surfSpots) {
-        const data = await fetchStormglassData(spot.lat, spot.lon);
-
-        if (!data || !data.windDirection || !data.swellDirection) {
+        const data = await fetchStormglassData(spot.lat, spot.lng);
+        if (!data || !data.hours) {
             console.warn(`No valid data for ${spot.name}`);
             continue;
         }
 
-        const windDirection = degreesToCardinal(data.windDirection?.noaa || 0);
-        const swellDirection = degreesToCardinal(data.swellDirection?.noaa || 0);
-        const tideCondition = spot.tide.includes("Incoming") ? "Incoming" : "Unknown";
+        const forecast = data.hours[0]; // Get the latest forecasted hour
+        const windDir = forecast.windDirection?.noaa ?? "Unknown";
+        const swellDir = forecast.swellDirection?.noaa ?? "Unknown";
+        const tideHeight = forecast.tideHeight?.noaa ?? "Unknown";
+        const windCardinal = convertWindDirection(windDir);
 
-        const windIdeal = spot.wind.includes(windDirection);
-        const swellIdeal = spot.swell.includes(swellDirection);
+        const isIdealWind = spot.wind.includes(windCardinal) || spot.wind.includes("Glassy");
+        const isIdealSwell = spot.swell.includes(swellDir);
+        const isIdealTide = tideHeight !== "Unknown"; // Placeholder logic, can refine further
 
-        if (windIdeal && swellIdeal) {
-            const alertDiv = document.createElement("div");
-            alertDiv.className = "alert";
-            alertDiv.innerHTML = `
-                <h3>${spot.name}</h3>
-                ✅ Wind is ideal (${windDirection}). ⚠️ Swell direction ${swellDirection}. 🌊 Tide: ${tideCondition}.
-            `;
-            alertsList.appendChild(alertDiv);
-        }
+        if (!isIdealWind || !isIdealSwell || !isIdealTide) continue;
+
+        const spotElement = document.createElement("div");
+        spotElement.classList.add("alert-item");
+        spotElement.innerHTML = `
+            <h3>${spot.name}</h3>
+            ${isIdealWind ? "✅ Wind is ideal (" + windCardinal + ")" : "❌ Wind not ideal (" + windCardinal + ")"} 
+            ${isIdealSwell ? "✅ Swell is good (" + swellDir + ")" : "⚠️ Swell direction unknown (" + swellDir + ")"}
+            🌊 Tide: ${spot.tide} (Current: ${tideHeight}m)
+        `;
+        alertsContainer.appendChild(spotElement);
     }
+    console.log("Surf Alerts Updated!");
 }
 
 document.addEventListener("DOMContentLoaded", displaySurfAlerts);
