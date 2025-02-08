@@ -1,5 +1,3 @@
-//  y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH
-
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("Initializing Windy Map...");
 
@@ -20,4 +18,3 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("Windy API successfully initialized!");
     });
 });
-
