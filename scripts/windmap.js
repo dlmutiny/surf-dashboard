@@ -29,6 +29,7 @@ map.on("load", function () {
 
 // Fetch and visualize wind data
 async function updateWindMap() {
+    console.log("Updating Wind Map...");
     try {
         // Fetch Marine Data (Wave Height & Wave Period)
         const marineResponse = await fetch(
@@ -70,6 +71,7 @@ async function updateWindMap() {
             fillOpacity: 0.7,
         }).addTo(map)
         .bindPopup(`💨 Wind: ${windSpeed} km/h<br>🧭 Direction: ${windDirection}°`);
+        console.log("Wind Map Updated Successfully!");
 
     } catch (error) {
         console.error("⚠️ Wind map update failed:", error);
