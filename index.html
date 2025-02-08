@@ -4,21 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surf Dashboard</title>
+
+    <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Styles -->
     <link rel="stylesheet" href="styles/main.css">
-    <script src="scripts/config.js"></script>
-    <script src="scripts/tides.js"></script>
-    <script src="scripts/forecast.js"></script>
-    <script src="scripts/alerts.js"></script>
-    <script src="scripts/windmap.js"></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 <body>
-    <div id="windMap"></div>
-    <canvas id="forecastChart"></canvas>
-    <div id="tideBox"></div>
-    <div id="alertBox"></div>
+    <h1>Surf Forecast Dashboard</h1>
+
+    <!-- Wind Map Container -->
+    <div id="windMap" style="height: 500px; width: 100%;"></div>
+
+    <!-- Include Scripts -->
+    <script src="scripts/windmap.js"></script>
+    <script src="scripts/alerts.js"></script>
 </body>
 </html>
