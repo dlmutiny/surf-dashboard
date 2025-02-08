@@ -12,14 +12,16 @@ const surfSpots = [
     { name: "Waddell Creek", swell: ["NW", "W", "N", "E"], wind: ["E"], tide: ["incoming", "high"] }
 ];
 
-const NOAA_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/surf";
+// Windy API Key (Replace with your actual API Key)
+const WINDY_API_KEY = "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH";
 
-// CORS Proxy (For testing only, remove if using a backend)
-const proxy = "https://cors-anywhere.herokuapp.com/";
+// NOAA API Endpoint
+const NOAA_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/surf.json"; // Updated with `.json` if needed
 
 async function fetchNOAAData() {
     try {
-        const response = await fetch(proxy + NOAA_API_URL);
+        const response = await fetch(NOAA_API_URL);
+        if (!response.ok) throw new Error(`NOAA API Error: ${response.statusText}`);
         const data = await response.json();
         console.log("NOAA Data:", data);
         return data;
@@ -30,10 +32,11 @@ async function fetchNOAAData() {
 }
 
 async function fetchWindyData() {
-    const WINDY_API_URL = `https://api.windy.com/api/point-forecast/v2?lat=36.985695&lon=-122.00287&model=gfs&parameters=wind,swell&key=YOUR_WINDY_API_KEY`;
+    const WINDY_API_URL = `https://api.windy.com/api/point-forecast/v2?lat=36.985695&lon=-122.00287&model=gfs&parameters=wind,swell&key=${WINDY_API_KEY}`;
 
     try {
         const response = await fetch(WINDY_API_URL);
+        if (!response.ok) throw new Error(`Windy API Error: ${response.statusText}`);
         const data = await response.json();
         console.log("Windy API Data:", data);
         return data;
@@ -52,9 +55,9 @@ async function displaySurfAlerts() {
         return;
     }
 
-    const currentSwell = windyData.swell; // Placeholder, adjust based on API response
-    const currentWind = windyData.wind; // Placeholder, adjust based on API response
-    const currentTide = noaaData.tide; // Placeholder, adjust based on API response
+    const currentSwell = windyData.swell || "W"; // Placeholder, adjust based on API response
+    const currentWind = windyData.wind || "NW"; // Placeholder, adjust based on API response
+    const currentTide = noaaData.tide || "incoming"; // Placeholder, adjust based on API response
 
     let bestSpot = null;
     let bestScore = 0;
@@ -73,7 +76,7 @@ async function displaySurfAlerts() {
     });
 
     const alertList = document.getElementById("alertList");
-    alertList.innerHTML = ""; 
+    alertList.innerHTML = "";
 
     if (bestSpot) {
         let alertItem = document.createElement("li");
