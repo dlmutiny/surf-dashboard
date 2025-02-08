@@ -65,4 +65,3 @@ function showAlerts(messages) {
 // Run every 10 minutes
 checkSurfSpots();
 setInterval(checkSurfSpots, 600000);
-
