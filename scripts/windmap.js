@@ -45,26 +45,38 @@ async function updateWindMap() {
 
         // Remove old markers
         map.eachLayer(layer => {
-            if (layer instanceof L.CircleMarker) {
+            if (layer instanceof L.CircleMarker || layer instanceof L.Polyline) {
                 map.removeLayer(layer);
             }
         });
 
         // Add a marker for wind data
-        L.circleMarker([37, -122], {
+        const windMarker = L.circleMarker([37, -122], {
             radius: windSpeed / 3,
             color: `hsl(${240 - windSpeed * 10}, 100%, 50%)`,
             fillOpacity: 0.7,
-        }).addTo(map)
-        .bindPopup(`💨 Wind: ${windSpeed} km/h<br>🧭 Direction: ${windDirection}°`);
+        }).addTo(map);
 
-        console.log("✅ Wind Map Updated Successfully!");
+        // Create a wind direction arrow
+        const windEndLat = 37 + 0.1 * Math.cos((windDirection * Math.PI) / 180);
+        const windEndLon = -122 + 0.1 * Math.sin((windDirection * Math.PI) / 180);
+
+        const windArrow = L.polyline([[37, -122], [windEndLat, windEndLon]], {
+            color: "blue",
+            weight: 3,
+            opacity: 0.7,
+            dashArray: "5, 5",
+        }).addTo(map);
+
+        windMarker.bindPopup(`💨 Wind: ${windSpeed} km/h<br>🧭 Direction: ${windDirection}°`);
+
+        console.log("✅ Wind Visualization Updated Successfully!");
+
     } catch (error) {
-        console.error("⚠️ Wind map update failed:", error);
+        console.error("⚠️ Wind visualization update failed:", error);
     }
 }
 
 // Run updates every 10 minutes
 updateWindMap();
 setInterval(updateWindMap, 600000);
-
