@@ -1,7 +1,6 @@
-let canvas, gl, particles = [];
-
+// Include Leaflet-Velocity Library
 const map = L.map("windMap", {
-    center: [37, -122], 
+    center: [37, -122],
     zoom: 5,
     zoomControl: false,
     preferCanvas: true,
@@ -9,67 +8,14 @@ const map = L.map("windMap", {
     minZoom: 3
 }).setView([37, -122], 5);
 
-// Add OpenStreetMap Tiles
+// Add OpenStreetMap Tiles as Base
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 10
 }).addTo(map);
 
-// Initialize WebGL Canvas
-function initWindCanvas() {
-    canvas = document.createElement("canvas");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = "absolute";
-    canvas.style.zIndex = "999";
-    document.body.appendChild(canvas);
-    
-    gl = canvas.getContext("webgl");
-    if (!gl) {
-        console.error("WebGL is not supported!");
-        return;
-    }
-}
+let windLayer;
 
-// Generate Particles
-function generateParticles(numParticles) {
-    particles = [];
-    for (let i = 0; i < numParticles; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            speed: Math.random() * 2 + 1,
-            direction: Math.random() * 360
-        });
-    }
-}
-
-// Render Particles (Wind Effect)
-function renderParticles() {
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    particles.forEach(p => {
-        p.x += p.speed * Math.cos((p.direction * Math.PI) / 180);
-        p.y += p.speed * Math.sin((p.direction * Math.PI) / 180);
-
-        // Wrap particles when they go off the screen
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y > canvas.height) p.y = 0;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.y < 0) p.y = canvas.height;
-
-        // Draw the particle
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    requestAnimationFrame(renderParticles);
-}
-
-// Fetch Wind Data and Adjust Particle Direction and Speed
 async function updateWindOverlay() {
     try {
         console.log("Fetching Wind Data...");
@@ -84,26 +30,45 @@ async function updateWindOverlay() {
             return;
         }
 
-        const windSpeed = windData.hourly.windspeed_10m[0];
-        const windDirection = windData.hourly.winddirection_10m[0];
+        // Prepare data for Leaflet-Velocity
+        const windSpeed = windData.hourly.windspeed_10m;
+        const windDirection = windData.hourly.winddirection_10m;
+        const lat = 37;
+        const lon = -122;
 
-        // Adjust particle speeds and directions based on wind data
-        particles.forEach(p => {
-            p.speed = windSpeed / 5 + Math.random() * 0.5;
-            p.direction = windDirection + (Math.random() * 20 - 10); // Add slight randomness
+        const uData = windSpeed.map((speed, i) => speed * Math.cos((windDirection[i] * Math.PI) / 180));
+        const vData = windSpeed.map((speed, i) => speed * Math.sin((windDirection[i] * Math.PI) / 180));
+
+        // Remove old wind layer
+        if (windLayer) {
+            map.removeLayer(windLayer);
+        }
+
+        // Create new Wind Layer using Leaflet-Velocity
+        windLayer = L.velocityLayer({
+            displayValues: true,
+            displayOptions: {
+                velocityType: "Global Wind",
+                position: "bottomleft",
+                emptyString: "No wind data",
+                angleConvention: "from",
+                showDirectionLabel: true
+            },
+            data: {
+                u: uData,
+                v: vData,
+                lat: lat,
+                lon: lon
+            }
         });
 
-        console.log(`✅ Wind Speed: ${windSpeed} km/h, Direction: ${windDirection}°`);
+        windLayer.addTo(map);
+        console.log("✅ Wind Overlay Updated Successfully!");
     } catch (error) {
         console.error("⚠️ Wind Overlay Update Failed:", error);
     }
 }
 
-// Initialize Everything
-initWindCanvas();
-generateParticles(1000);
+// Refresh Wind Overlay Every 10 Minutes
 updateWindOverlay();
-renderParticles();
-
-// Update Wind Data Every 10 Minutes
 setInterval(updateWindOverlay, 600000);
