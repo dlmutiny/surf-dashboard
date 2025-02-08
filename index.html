@@ -7,26 +7,12 @@
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <header>
-        <h1>Surf Forecast Dashboard</h1>
-    </header>
+    <h1>Surf Forecast Dashboard</h1>
+    <div id="windy-map"></div>
+    <div id="alerts"></div>
 
-    <main>
-        <section id="windy-map">
-            <!-- Windy API Map Container -->
-            <div id="windy"></div>
-        </section>
-
-        <section id="surf-alerts">
-            <h2>Surf Spot Alerts</h2>
-            <div id="alerts-container">Loading surf alerts...</div>
-        </section>
-    </main>
-
-    <script src="scripts/config.js"></script>
     <script src="scripts/windmap.js"></script>
-    <script src="scripts/forecast.js"></script>
-    <script src="scripts/tides.js"></script>
     <script src="scripts/alerts.js"></script>
+    <script src="scripts/forecast.js"></script>
 </body>
 </html>
