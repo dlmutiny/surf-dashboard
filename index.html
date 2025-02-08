@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surf Dashboard</title>
 
-    <!-- ✅ Load Windy API -->
-    <script src="https://api.windy.com/assets/libBoot.js"></script>
-
-    <!-- ✅ Load Leaflet 1.4.0 (Windy requires this version) -->
+    <!-- ✅ Ensure Leaflet 1.4.0 is loaded (Windy requires this) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+
+    <!-- ✅ Load Windy API -->
+    <script src="https://api.windy.com/assets/libBoot.js"></script>
 
 </head>
 <body>
     <h1>Surf Forecast Dashboard</h1>
 
-    <!-- ✅ Windy requires this div -->
+    <!-- ✅ Windy API Requires This -->
     <div id="windy" style="height: 500px; width: 100%;"></div>
 
-    <!-- ✅ Ensure `windmap.js` runs only after Windy API is fully loaded -->
+    <!-- ✅ Load Windy API after DOM is Ready -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             console.log("DOM fully loaded. Initializing Windy map...");
