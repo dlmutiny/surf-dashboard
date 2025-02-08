@@ -17,19 +17,18 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Include Leaflet-Velocity -->
-    <script src="./scripts/leaflet-velocity.min.js"></script>
+    <!-- Leaflet-Velocity (Fix from CDN) -->
+    <script src="https://cdn.jsdelivr.net/gh/danwild/leaflet-velocity/dist/leaflet-velocity.min.js"></script>
 
 </head>
 <body>
     <h1>Surf Forecast Dashboard</h1>
 
-    <!-- Ensure this div exists -->
-    <div id="map" style="height: 500px; width: 100%;"></div>
+    <!-- Wind Map Container -->
+    <div id="windMap" style="height: 500px; width: 100%;"></div>
 
     <!-- Include Scripts -->
     <script src="scripts/windmap.js"></script>
     <script src="scripts/alerts.js"></script>
 </body>
 </html>
-
