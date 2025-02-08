@@ -1,123 +1,70 @@
-let map = L.map("windMap", {
-    center: [37, -122], 
-    zoom: 5,
-    zoomControl: false,
-    preferCanvas: true,
-    maxZoom: 10,
-    minZoom: 3
-}).setView([37, -122], 5);
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("Fetching Wind Data...");
+    fetch("https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto")
+        .then(response => response.json())
+        .then(data => {
+            console.log("Wind Data Received:", data);
+            updateWindOverlay(data);
+        })
+        .catch(error => console.error("Error fetching wind data:", error));
+});
 
-// Add OpenStreetMap Tiles as Base
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap contributors",
-    maxZoom: 10
-}).addTo(map);
+async function updateWindOverlay(data) {
+    console.log("Processing Wind Data for Overlay...");
+    
+    const uComponent = {
+        "header": {
+            "parameterCategory": 2,
+            "parameterNumber": 2,
+            "dx": 0.5,
+            "dy": 0.5,
+            "lo1": -125,
+            "la1": 35,
+            "nx": 11,
+            "ny": 9
+        },
+        "data": data.hourly.windspeed_10m.map((speed, index) => {
+            return speed * Math.cos(data.hourly.winddirection_10m[index] * (Math.PI / 180));
+        })
+    };
 
-let windLayer;
+    const vComponent = {
+        "header": {
+            "parameterCategory": 2,
+            "parameterNumber": 3,
+            "dx": 0.5,
+            "dy": 0.5,
+            "lo1": -125,
+            "la1": 35,
+            "nx": 11,
+            "ny": 9
+        },
+        "data": data.hourly.windspeed_10m.map((speed, index) => {
+            return speed * Math.sin(data.hourly.winddirection_10m[index] * (Math.PI / 180));
+        })
+    };
+    
+    console.log("Checking Data Lengths: uComp=", uComponent.data.length, "vComp=", vComponent.data.length, "Expected=", data.hourly.windspeed_10m.length);
+    console.log("Wind Data Structure Before Passing to Leaflet-Velocity:", { uComponent, vComponent });
 
-async function updateWindOverlay() {
-    try {
-        console.log("🌍 Fetching Wind Data...");
-        const windResponse = await fetch(
-            "https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto"
-        );
-        const windData = await windResponse.json();
-        console.log("✅ Wind Data Received:", windData);
-
-        if (!windData.hourly || !windData.hourly.windspeed_10m) {
-            console.error("❌ Wind Data Missing!");
-            return;
-        }
-
-        // Define grid parameters
-        const latStart = 35.0, latEnd = 39.0, lonStart = -125.0, lonEnd = -120.0;
-        const gridStep = 0.5;
-        const nx = Math.round((lonEnd - lonStart) / gridStep) + 1;
-        const ny = Math.round((latEnd - latStart) / gridStep) + 1;
-
-        // Create Typed Arrays (Fixes forEach issue)
-        let uComp = new Float32Array(nx * ny);
-        let vComp = new Float32Array(nx * ny);
-
-        let i = 0;
-        for (let lat = latStart; lat <= latEnd; lat += gridStep) {
-            for (let lon = lonStart; lon <= lonEnd; lon += gridStep) {
-                const index = Math.floor(Math.random() * windData.hourly.windspeed_10m.length);
-                const windSpeed = windData.hourly.windspeed_10m[index] || 0;
-                const windDir = windData.hourly.winddirection_10m[index] || 0;
-
-                // Convert wind speed and direction to U/V components
-                const u = windSpeed * Math.cos((windDir * Math.PI) / 180);
-                const v = windSpeed * Math.sin((windDir * Math.PI) / 180);
-
-                uComp[i] = u;
-                vComp[i] = v;
-                i++;
-            }
-        }
-
-        console.log(`🧐 Checking Data Lengths: uComp=${uComp.length}, vComp=${vComp.length}, Expected=${nx * ny}`);
-
-        // Format data for Leaflet-Velocity
-        const velocityData = {
-            uComponent: {
-                header: {
-                    parameterCategory: 2, 
-                    parameterNumber: 2, 
-                    dx: gridStep, 
-                    dy: gridStep, 
-                    lo1: lonStart, 
-                    la1: latStart,
-                    nx: nx, 
-                    ny: ny
-                },
-                data: Array.from(uComp) // Convert back to normal array
-            },
-            vComponent: {
-                header: {
-                    parameterCategory: 2, 
-                    parameterNumber: 3, 
-                    dx: gridStep, 
-                    dy: gridStep, 
-                    lo1: lonStart, 
-                    la1: latStart,
-                    nx: nx,
-                    ny: ny
-                },
-                data: Array.from(vComp) // Convert back to normal array
-            }
-        };
-
-        // 🔹 Log the formatted wind data to inspect its structure
-        console.log("🧐 Wind Data Structure Before Passing to Leaflet-Velocity:", JSON.stringify(velocityData, null, 2));
-
-        // Remove old wind layer if present
-        if (windLayer) {
-            map.removeLayer(windLayer);
-        }
-
-        // Create Wind Layer using Leaflet-Velocity
-        windLayer = L.velocityLayer({
-            displayValues: true,
-            displayOptions: {
-                velocityType: "Global Wind",
-                position: "bottomleft",
-                emptyString: "No wind data",
-                angleConvention: "from",
-                showDirectionLabel: true
-            },
-            data: velocityData,
-            minVelocity: 0,
-            maxVelocity: 50,
-            velocityScale: 0.01
-        }).addTo(map);
-
-        console.log("✅ Wind Overlay Updated Successfully!");
-    } catch (error) {
-        console.error("⚠️ Wind Overlay Update Failed:", error);
+    if (!Array.isArray(uComponent.data) || !Array.isArray(vComponent.data)) {
+        console.error("Error: Wind data is not in array format!");
+        return;
     }
-}
 
-// Refresh Wind Overlay Every 10 Minutes
-updateWindOverlay();
-setInterval(updateWindOverlay, 600000);
+    const velocityLayer = L.velocityLayer({
+        displayValues: true,
+        displayOptions: {
+            velocityType: "Global Wind",
+            position: "bottomleft",
+            emptyString: "No wind data",
+            angleConvention: "bearingCW",
+            speedUnit: "m/s"
+        },
+        data: [uComponent, vComponent],
+        maxVelocity: 15
+    });
+
+    map.addLayer(velocityLayer);
+    console.log("✅ Wind Overlay Updated Successfully!");
+}
