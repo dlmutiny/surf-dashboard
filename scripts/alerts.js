@@ -45,22 +45,19 @@ function displaySurfAlerts(data) {
 
     const forecast = data.properties.periods[0];  // Latest forecast period
     const windDir = forecast.windDirection || "Unknown";
-    let rainChance = "Unknown";
-    let swellHeight = "Unknown";
 
     // **Fix: Extract Rain Probability Properly**
-    if (forecast.probabilityOfPrecipitation && forecast.probabilityOfPrecipitation.value !== null) {
-        rainChance = `${forecast.probabilityOfPrecipitation.value}%`;
-    } else {
-        rainChance = "No Data";
-    }
+    let rainChance = forecast.probabilityOfPrecipitation?.value !== null
+        ? `${forecast.probabilityOfPrecipitation.value}%`
+        : "No Data";
 
     // **Fix: Extract Swell Height Properly**
-    if (forecast.waveHeight && forecast.waveHeight.value !== null) {
-        swellHeight = `${forecast.waveHeight.value} ft`;
-    } else {
-        swellHeight = "No Data";
-    }
+    let swellHeight = forecast.waveHeight?.value !== null
+        ? `${forecast.waveHeight.value} ft`
+        : "No Data";
+
+    // **Check Console Output**
+    console.log(`Extracted Data -> Wind: ${windDir}, Swell Height: ${swellHeight}, Rain Chance: ${rainChance}`);
 
     surfSpots.forEach(spot => {
         let matchScore = 0;
@@ -106,5 +103,5 @@ function displaySurfAlerts(data) {
         alertsList.appendChild(listItem);
     });
 
-    console.log("Surf Alerts Updated!");
+    console.log("✅ Surf Alerts Updated!");
 }
