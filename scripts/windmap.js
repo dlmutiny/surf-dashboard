@@ -1,11 +1,13 @@
 const windyAPIKey = "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH";
 
 function initializeWindyMap() {
+    // Check if Windy API is available
     if (typeof windyInit === "undefined") {
         console.error("Windy API is not loaded correctly.");
         return;
     }
 
+    // Initialize Windy map
     windyInit(
         {
             key: windyAPIKey,
@@ -16,11 +18,13 @@ function initializeWindyMap() {
         },
         (windyAPI) => {
             const { map } = windyAPI;
-            console.log("Windy Map initialized successfully!", map);
+            console.log("✅ Windy Map initialized successfully!", map);
         }
     );
 }
 
-// Wait for Windy API to load before initializing
-window.onload = initializeWindyMap;
+// Ensure Windy loads before initializing the map
+window.onload = function () {
+    setTimeout(initializeWindyMap, 1000); // Small delay to allow Windy to load
+};
 
