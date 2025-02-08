@@ -4,19 +4,23 @@ const surfSpots = [
     { name: "Capitola", swell: ["S", "SSW", "W"], wind: ["NW", "N", "glassy"], tide: ["medium"] },
     { name: "Pleasure Point", swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "medium"] },
     { name: "26th Ave.", swell: ["SW", "W", "NW"], wind: ["E"], tide: ["low", "incoming"] },
-    { name: "Manresa", swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: ["any", "incoming"] },
+    { name: "Manresa", swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: ["incoming", "any"] },
     { name: "Steamer Lane", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
     { name: "Indicators", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
     { name: "Cowells", swell: ["W", "NW", "S"], wind: ["N", "NW"], tide: ["low", "incoming"] },
     { name: "Four Mile", swell: ["NW", "W", "WSW"], wind: ["NW", "N", "NE"], tide: ["incoming", "high"] },
-    { name: "Waddell Creek", swell: ["W", "NW", "N", "E"], wind: ["E"], tide: ["incoming", "high"] },
+    { name: "Waddell Creek", swell: ["NW", "W", "N", "E"], wind: ["E"], tide: ["incoming", "high"] }
 ];
 
+const NOAA_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/surf";
+
+// CORS Proxy (For testing only, remove if using a backend)
+const proxy = "https://cors-anywhere.herokuapp.com/";
+
 async function fetchNOAAData() {
-    const noaaUrl = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/surf"; // Placeholder, replace with actual endpoint
     try {
-        let response = await fetch(noaaUrl);
-        let data = await response.json();
+        const response = await fetch(proxy + NOAA_API_URL);
+        const data = await response.json();
         console.log("NOAA Data:", data);
         return data;
     } catch (error) {
@@ -26,89 +30,60 @@ async function fetchNOAAData() {
 }
 
 async function fetchWindyData() {
-    const windyUrl = "https://api.windy.com/v4/forecast?key=y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH"; // Replace with your API key
+    const WINDY_API_URL = `https://api.windy.com/api/point-forecast/v2?lat=36.985695&lon=-122.00287&model=gfs&parameters=wind,swell&key=YOUR_WINDY_API_KEY`;
+
     try {
-        let response = await fetch(windyUrl);
-        let data = await response.json();
-        console.log("Windy Data:", data);
+        const response = await fetch(WINDY_API_URL);
+        const data = await response.json();
+        console.log("Windy API Data:", data);
         return data;
     } catch (error) {
-        console.error("Error fetching Windy data:", error);
+        console.error("Error fetching Windy API data:", error);
         return null;
     }
 }
 
-function getColorRank(score) {
-    if (score === 3) return "🟢 Excellent";
-    if (score === 2) return "🟡 Good";
-    if (score === 1) return "🟠 Fair";
-    return "🔴 Poor";
-}
-
-function generateSurfAlerts(windData, swellData) {
-    let alerts = [];
-    
-    surfSpots.forEach(spot => {
-        let score = 0;
-        let reasons = [];
-
-        // Check swell direction
-        if (spot.swell.includes(swellData.direction)) {
-            score++;
-            reasons.push("✔️ Favorable swell direction");
-        } else {
-            reasons.push("❌ Swell direction is not ideal");
-        }
-
-        // Check wind direction
-        if (spot.wind.includes(windData.direction)) {
-            score++;
-            reasons.push("✔️ Favorable wind conditions");
-        } else {
-            reasons.push("❌ Wind may cause chop or unfavorable conditions");
-        }
-
-        // Check tide condition
-        if (spot.tide.includes(swellData.tide)) {
-            score++;
-            reasons.push("✔️ Optimal tide level");
-        } else {
-            reasons.push("❌ Tide is not ideal for this spot");
-        }
-
-        // Generate alert
-        alerts.push({
-            spot: spot.name,
-            rank: getColorRank(score),
-            reasons: reasons.join(", ")
-        });
-    });
-
-    return alerts;
-}
-
 async function displaySurfAlerts() {
-    const windData = await fetchWindyData();
-    const swellData = await fetchNOAAData();
+    const noaaData = await fetchNOAAData();
+    const windyData = await fetchWindyData();
 
-    if (!windData || !swellData) {
+    if (!noaaData || !windyData) {
         console.error("Failed to retrieve data.");
         return;
     }
 
-    const alerts = generateSurfAlerts(windData, swellData);
-    
-    let alertContainer = document.createElement("div");
-    alertContainer.innerHTML = `<h2>Surf Alerts</h2>`;
+    const currentSwell = windyData.swell; // Placeholder, adjust based on API response
+    const currentWind = windyData.wind; // Placeholder, adjust based on API response
+    const currentTide = noaaData.tide; // Placeholder, adjust based on API response
 
-    alerts.forEach(alert => {
-        let alertElement = document.createElement("p");
-        alertElement.innerHTML = `<strong>${alert.spot}:</strong> ${alert.rank}<br>${alert.reasons}`;
-        alertContainer.appendChild(alertElement);
+    let bestSpot = null;
+    let bestScore = 0;
+
+    surfSpots.forEach(spot => {
+        let score = 0;
+
+        if (spot.swell.includes(currentSwell)) score += 2;
+        if (spot.wind.includes(currentWind)) score += 2;
+        if (spot.tide.includes(currentTide)) score += 1;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestSpot = spot;
+        }
     });
 
-    document.body.appendChild(alertContainer);
+    const alertList = document.getElementById("alertList");
+    alertList.innerHTML = ""; 
+
+    if (bestSpot) {
+        let alertItem = document.createElement("li");
+        alertItem.innerHTML = `<strong>${bestSpot.name}</strong> - Best spot based on current conditions!`;
+        alertList.appendChild(alertItem);
+    } else {
+        let alertItem = document.createElement("li");
+        alertItem.innerHTML = "No optimal surf spots found based on current conditions.";
+        alertList.appendChild(alertItem);
+    }
 }
 
-// Run alerts function after the page loads
 window.onload = displaySurfAlerts;
