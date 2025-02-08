@@ -1,20 +1,23 @@
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", function () {
     console.log("Initializing Windy Map...");
 
-    if (typeof windyInit === "undefined") {
+    if (typeof windyInit !== "function") {
         console.error("Windy API is not loaded. Check if libBoot.js is included correctly.");
         return;
     }
 
     const options = {
-        key: "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH",
-        lat: 36.985695,
-        lon: -122.00287,
-        zoom: 7,
+        key: "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH", // Your Windy API Key
+        lat: 36.9742,  // Centered on Santa Cruz
+        lon: -122.031,
+        zoom: 10,
+        overlay: "wind"
     };
 
     windyInit(options, (windyAPI) => {
-        const { map } = windyAPI;
         console.log("Windy API successfully initialized!");
+
+        const { map } = windyAPI;
+        console.log("Windy Map initialized successfully!");
     });
 });
