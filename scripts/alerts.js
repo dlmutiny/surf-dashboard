@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 async function fetchWeatherGovData() {
-    const apiUrl = "https://api.weather.gov/gridpoints/MTR/90,120/forecast";  // Forecast for Santa Cruz area
+    const apiUrl = "https://api.weather.gov/gridpoints/MTR/90,120/forecast"; // Forecast for Santa Cruz area
 
     try {
         const response = await fetch(apiUrl);
@@ -45,13 +45,19 @@ function displaySurfAlerts(data) {
 
     const forecast = data.properties.periods[0];  // Get the latest forecast period
     const windDir = forecast.windDirection || "Unknown";
-    const swellHeight = forecast.waveHeight || "Unknown";
-    const rainChance = forecast.probabilityOfPrecipitation || "Unknown";
+    const rainChance = forecast.probabilityOfPrecipitation.value ?? "Unknown"; // Ensure rainChance is a number
+    let swellHeight = "Unknown";
+
+    // Extract swell height correctly
+    if (forecast.waveHeight && typeof forecast.waveHeight === "object" && forecast.waveHeight.value !== null) {
+        swellHeight = `${forecast.waveHeight.value} ft`;
+    }
 
     surfSpots.forEach(spot => {
         let matchScore = 0;
         let description = "";
 
+        // Wind Check
         if (spot.wind.includes(windDir)) {
             matchScore += 1;
             description += `✅ Wind is ideal (${windDir}). `;
@@ -59,13 +65,15 @@ function displaySurfAlerts(data) {
             description += `❌ Wind not optimal (${windDir}). `;
         }
 
-        if (swellHeight !== "Unknown" && swellHeight > 2) {
+        // Swell Check
+        if (swellHeight !== "Unknown" && parseFloat(swellHeight) > 2) {
             matchScore += 1;
-            description += `🌊 Swell is solid (${swellHeight} ft). `;
+            description += `🌊 Swell is solid (${swellHeight}). `;
         } else {
-            description += `⚠️ Small swell (${swellHeight} ft). `;
+            description += `⚠️ Small swell (${swellHeight}). `;
         }
 
+        // Rain Check
         if (rainChance !== "Unknown" && rainChance < 20) {
             matchScore += 1;
             description += `☀️ Clear skies. `;
@@ -73,6 +81,7 @@ function displaySurfAlerts(data) {
             description += `🌧️ Possible rain (${rainChance}%). `;
         }
 
+        // Set Color Ranking
         let color = "gray";
         if (matchScore >= 3) {
             color = "green";
@@ -82,6 +91,7 @@ function displaySurfAlerts(data) {
             color = "red";
         }
 
+        // Add to Alerts List
         const listItem = document.createElement("li");
         listItem.innerHTML = `<strong style="color:${color}">${spot.name}</strong> - ${description}`;
         alertsList.appendChild(listItem);
