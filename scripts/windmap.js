@@ -1,4 +1,4 @@
-let map; // Declare map globally so all functions can access it
+let map; // Global map variable
 
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM fully loaded. Initializing map...");
@@ -31,20 +31,26 @@ async function updateWindOverlay() {
             return;
         }
 
+        // Convert wind speed & direction into u and v components
         const windData = {
             uComponent: {
                 header: { parameterCategory: 2, parameterNumber: 2, dx: 0.5, dy: 0.5, lo1: -125, la1: 35, nx: 11, ny: 9 },
-                data: data.hourly.wind_speed_10m.map((speed, i) => speed * Math.cos(data.hourly.winddirection_10m[i] * Math.PI / 180))
+                data: data.hourly.wind_speed_10m.map((speed, i) => 
+                    parseFloat((speed * Math.cos(data.hourly.winddirection_10m[i] * Math.PI / 180)).toFixed(2))
+                )
             },
             vComponent: {
                 header: { parameterCategory: 2, parameterNumber: 3, dx: 0.5, dy: 0.5, lo1: -125, la1: 35, nx: 11, ny: 9 },
-                data: data.hourly.wind_speed_10m.map((speed, i) => speed * Math.sin(data.hourly.winddirection_10m[i] * Math.PI / 180))
+                data: data.hourly.wind_speed_10m.map((speed, i) => 
+                    parseFloat((speed * Math.sin(data.hourly.winddirection_10m[i] * Math.PI / 180)).toFixed(2))
+                )
             }
         };
 
         console.log("Processing Wind Data for Overlay...");
         console.log("Wind Data Structure Before Passing to Leaflet-Velocity:", windData);
 
+        // Check if data is in correct format
         if (!Array.isArray(windData.uComponent.data) || !Array.isArray(windData.vComponent.data)) {
             console.error("Wind data is not an array:", windData);
             return;
@@ -68,7 +74,7 @@ async function updateWindOverlay() {
         });
 
         windLayer.addTo(map);
-        console.log("Wind Overlay Updated Successfully!");
+        console.log("✅ Wind Overlay Updated Successfully!");
 
     } catch (error) {
         console.error("Error fetching wind data:", error);
