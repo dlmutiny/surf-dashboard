@@ -1,6 +1,6 @@
-// Include Leaflet-Velocity Library
-const map = L.map("windMap", {
-    center: [37, -122],
+// Load Windy-Style Wind Visualization Using Leaflet-Velocity
+let map = L.map("windMap", {
+    center: [37, -122], 
     zoom: 5,
     zoomControl: false,
     preferCanvas: true,
@@ -14,8 +14,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 10
 }).addTo(map);
 
+// Wind Overlay Variable
 let windLayer;
 
+// Function to Fetch and Render Wind Data
 async function updateWindOverlay() {
     try {
         console.log("Fetching Wind Data...");
@@ -30,22 +32,40 @@ async function updateWindOverlay() {
             return;
         }
 
-        // Extract wind data
+        // Extract wind speed and direction arrays
         const windSpeedArray = windData.hourly.windspeed_10m;
         const windDirectionArray = windData.hourly.winddirection_10m;
-        const lat = 37;
-        const lon = -122;
 
-        // Structure the wind data correctly for Leaflet-Velocity
+        // Set a fixed grid for visualization
+        const latStart = 36.5, latEnd = 38.5, lonStart = -123.5, lonEnd = -121.5;
+        const gridStep = 0.5;
+        let gridData = [];
+
+        // Generate wind grid points
+        for (let lat = latStart; lat <= latEnd; lat += gridStep) {
+            for (let lon = lonStart; lon <= lonEnd; lon += gridStep) {
+                const randomIndex = Math.floor(Math.random() * windSpeedArray.length);
+                const windSpeed = windSpeedArray[randomIndex];
+                const windDir = windDirectionArray[randomIndex];
+
+                // Convert to U/V components
+                const u = windSpeed * Math.cos((windDir * Math.PI) / 180);
+                const v = windSpeed * Math.sin((windDir * Math.PI) / 180);
+
+                gridData.push({ lat, lon, u, v });
+            }
+        }
+
+        // Format data properly for Leaflet-Velocity
         const velocityData = {
             data: [
                 {
-                    header: { parameterNumberName: "eastward_wind", dx: 0.1, dy: 0.1, lo1: lon, la1: lat },
-                    data: windSpeedArray.map((speed, i) => speed * Math.cos((windDirectionArray[i] * Math.PI) / 180))
+                    header: { parameterNumberName: "eastward_wind", dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
+                    data: gridData.map((point) => point.u)
                 },
                 {
-                    header: { parameterNumberName: "northward_wind", dx: 0.1, dy: 0.1, lo1: lon, la1: lat },
-                    data: windSpeedArray.map((speed, i) => speed * Math.sin((windDirectionArray[i] * Math.PI) / 180))
+                    header: { parameterNumberName: "northward_wind", dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
+                    data: gridData.map((point) => point.v)
                 }
             ]
         };
@@ -77,6 +97,6 @@ async function updateWindOverlay() {
     }
 }
 
-// Refresh Wind Overlay Every 10 Minutes
+// Update Wind Overlay Every 10 Minutes
 updateWindOverlay();
 setInterval(updateWindOverlay, 600000);
