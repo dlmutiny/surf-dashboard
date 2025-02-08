@@ -30,39 +30,47 @@ async function updateWindOverlay() {
             return;
         }
 
-        // Prepare data for Leaflet-Velocity
-        const windSpeed = windData.hourly.windspeed_10m;
-        const windDirection = windData.hourly.winddirection_10m;
+        // Extract wind data
+        const windSpeedArray = windData.hourly.windspeed_10m;
+        const windDirectionArray = windData.hourly.winddirection_10m;
         const lat = 37;
         const lon = -122;
 
-        const uData = windSpeed.map((speed, i) => speed * Math.cos((windDirection[i] * Math.PI) / 180));
-        const vData = windSpeed.map((speed, i) => speed * Math.sin((windDirection[i] * Math.PI) / 180));
+        // Structure the wind data correctly for Leaflet-Velocity
+        const velocityData = {
+            data: [
+                {
+                    header: { parameterNumberName: "eastward_wind", dx: 0.1, dy: 0.1, lo1: lon, la1: lat },
+                    data: windSpeedArray.map((speed, i) => speed * Math.cos((windDirectionArray[i] * Math.PI) / 180))
+                },
+                {
+                    header: { parameterNumberName: "northward_wind", dx: 0.1, dy: 0.1, lo1: lon, la1: lat },
+                    data: windSpeedArray.map((speed, i) => speed * Math.sin((windDirectionArray[i] * Math.PI) / 180))
+                }
+            ]
+        };
 
-        // Remove old wind layer
+        // Remove old wind layer if present
         if (windLayer) {
             map.removeLayer(windLayer);
         }
 
-        // Create new Wind Layer using Leaflet-Velocity
+        // Create Wind Layer using Leaflet-Velocity
         windLayer = L.velocityLayer({
             displayValues: true,
             displayOptions: {
-                velocityType: "Global Wind",
+                velocityType: "Wind",
                 position: "bottomleft",
                 emptyString: "No wind data",
                 angleConvention: "from",
                 showDirectionLabel: true
             },
-            data: {
-                u: uData,
-                v: vData,
-                lat: lat,
-                lon: lon
-            }
-        });
+            data: velocityData,
+            minVelocity: 0,
+            maxVelocity: 50,
+            velocityScale: 0.005
+        }).addTo(map);
 
-        windLayer.addTo(map);
         console.log("✅ Wind Overlay Updated Successfully!");
     } catch (error) {
         console.error("⚠️ Wind Overlay Update Failed:", error);
