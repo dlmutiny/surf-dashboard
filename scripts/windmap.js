@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     const options = {
-        key: "YOUR_WINDY_API_KEY", // Replace with your Windy API key
+        key: "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH", // Replace with your Windy API key
         verbose: true,
         lat: 36.985695,
         lon: -122.00287,
