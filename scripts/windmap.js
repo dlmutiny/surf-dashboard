@@ -29,21 +29,17 @@ async function updateWindOverlay() {
             return;
         }
 
-        // Extract wind speed and direction arrays
-        const windSpeedArray = windData.hourly.windspeed_10m;
-        const windDirectionArray = windData.hourly.winddirection_10m;
-
-        // Define Grid
+        // Define grid parameters
         const latStart = 35.0, latEnd = 39.0, lonStart = -125.0, lonEnd = -120.0;
         const gridStep = 0.5;
-        let uComp = [], vComp = [], gridData = [];
+        let uComp = [], vComp = [];
 
         // Generate wind grid
         for (let lat = latStart; lat <= latEnd; lat += gridStep) {
             for (let lon = lonStart; lon <= lonEnd; lon += gridStep) {
-                const index = Math.floor(Math.random() * windSpeedArray.length);
-                const windSpeed = windSpeedArray[index];
-                const windDir = windDirectionArray[index];
+                const index = Math.floor(Math.random() * windData.hourly.windspeed_10m.length);
+                const windSpeed = windData.hourly.windspeed_10m[index];
+                const windDir = windData.hourly.winddirection_10m[index];
 
                 // Convert wind speed and direction to U/V components
                 const u = windSpeed * Math.cos((windDir * Math.PI) / 180);
@@ -51,18 +47,35 @@ async function updateWindOverlay() {
 
                 uComp.push(u);
                 vComp.push(v);
-                gridData.push({ lat, lon, u, v });
             }
         }
 
         // Format data for Leaflet-Velocity
         const velocityData = {
             uComponent: {
-                header: { parameterCategory: 2, parameterNumber: 2, dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
+                header: {
+                    parameterCategory: 2, 
+                    parameterNumber: 2, 
+                    dx: gridStep, 
+                    dy: gridStep, 
+                    lo1: lonStart, 
+                    la1: latStart,
+                    nx: Math.round((lonEnd - lonStart) / gridStep) + 1, // Grid size X
+                    ny: Math.round((latEnd - latStart) / gridStep) + 1  // Grid size Y
+                },
                 data: uComp
             },
             vComponent: {
-                header: { parameterCategory: 2, parameterNumber: 3, dx: gridStep, dy: gridStep, lo1: lonStart, la1: latStart },
+                header: {
+                    parameterCategory: 2, 
+                    parameterNumber: 3, 
+                    dx: gridStep, 
+                    dy: gridStep, 
+                    lo1: lonStart, 
+                    la1: latStart,
+                    nx: Math.round((lonEnd - lonStart) / gridStep) + 1,
+                    ny: Math.round((latEnd - latStart) / gridStep) + 1
+                },
                 data: vComp
             }
         };
