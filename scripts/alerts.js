@@ -10,23 +10,31 @@ const surfSpots = [
 ];
 
 async function fetchStormglassData(lat, lng) {
-    const url = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lng}&params=windDirection,swellDirection,swellHeight,tideHeight`;
+    const url = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lng}&params=windDirection,swellDirection,swellHeight`;
+
     try {
         const response = await fetch(url, {
             headers: { "Authorization": stormglassAPIKey },
         });
 
         if (!response.ok) {
-            throw new Error(`Stormglass API returned ${response.status}`);
+            console.error(`Stormglass API returned ${response.status} for lat:${lat}, lng:${lng}`);
+            return null;
         }
 
         const data = await response.json();
+        if (!data.hours || data.hours.length === 0) {
+            console.warn(`No valid data from Stormglass for lat:${lat}, lng:${lng}`);
+            return null;
+        }
+
         return data;
     } catch (error) {
         console.error("Error fetching Stormglass data:", error);
         return null;
     }
 }
+
 
 function convertWindDirection(degrees) {
     const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
