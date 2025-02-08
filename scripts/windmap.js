@@ -32,38 +32,47 @@ async function updateWindOverlay() {
         }
 
         // Convert wind speed & direction into u and v components
+        const uData = data.hourly.wind_speed_10m.map((speed, i) => 
+            parseFloat((speed * Math.cos(data.hourly.winddirection_10m[i] * Math.PI / 180)).toFixed(2))
+        );
+
+        const vData = data.hourly.wind_speed_10m.map((speed, i) => 
+            parseFloat((speed * Math.sin(data.hourly.winddirection_10m[i] * Math.PI / 180)).toFixed(2))
+        );
+
+        // Ensure arrays are properly formatted
+        if (!Array.isArray(uData) || !Array.isArray(vData)) {
+            console.error("❌ Wind component data is NOT an array:", { uData, vData });
+            return;
+        }
+
         const windData = {
             uComponent: {
                 header: { parameterCategory: 2, parameterNumber: 2, dx: 0.5, dy: 0.5, lo1: -125, la1: 35, nx: 11, ny: 9 },
-                data: data.hourly.wind_speed_10m.map((speed, i) => 
-                    parseFloat((speed * Math.cos(data.hourly.winddirection_10m[i] * Math.PI / 180)).toFixed(2))
-                )
+                data: Array.from(uData) // Ensure it's an array
             },
             vComponent: {
                 header: { parameterCategory: 2, parameterNumber: 3, dx: 0.5, dy: 0.5, lo1: -125, la1: 35, nx: 11, ny: 9 },
-                data: data.hourly.wind_speed_10m.map((speed, i) => 
-                    parseFloat((speed * Math.sin(data.hourly.winddirection_10m[i] * Math.PI / 180)).toFixed(2))
-                )
+                data: Array.from(vData) // Ensure it's an array
             }
         };
 
         console.log("Processing Wind Data for Overlay...");
         console.log("Wind Data Structure Before Passing to Leaflet-Velocity:", windData);
 
-        // Check if data is in correct format
-        if (!Array.isArray(windData.uComponent.data) || !Array.isArray(windData.vComponent.data)) {
-            console.error("Wind data is not an array:", windData);
+        // Ensure Leaflet-Velocity is properly loaded
+        if (typeof L.velocityLayer !== "function") {
+            console.error("❌ Leaflet-Velocity is NOT loaded correctly.");
             return;
         }
 
-        // Ensure Leaflet-Velocity is properly loaded
-        if (typeof L.velocityLayer !== "function") {
-            console.error("Leaflet-Velocity is NOT loaded correctly.");
-            return;
+        // Remove previous wind layers before adding a new one
+        if (window.currentWindLayer) {
+            map.removeLayer(window.currentWindLayer);
         }
 
         // Add wind layer
-        const windLayer = L.velocityLayer({
+        window.currentWindLayer = L.velocityLayer({
             displayValues: true,
             displayOptions: {
                 velocityType: "Global Wind",
@@ -73,10 +82,10 @@ async function updateWindOverlay() {
             data: windData
         });
 
-        windLayer.addTo(map);
+        window.currentWindLayer.addTo(map);
         console.log("✅ Wind Overlay Updated Successfully!");
 
     } catch (error) {
-        console.error("Error fetching wind data:", error);
+        console.error("❌ Error fetching wind data:", error);
     }
 }
