@@ -1,105 +1,76 @@
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("Fetching Surf Data...");
+const stormglassApiKey = "711783d0-e669-11ef-9159-0242ac130003-71178470-e669-11ef-9159-0242ac130003";
+const surfSpots = [
+    { name: "The Hook", lat: 36.9514, lon: -121.9664, swell: ["W", "NW", "S"], wind: ["E", "NW", "glassy"], tide: ["incoming", "medium"] },
+    { name: "Jack’s (38th St.)", lat: 36.9525, lon: -121.9652, swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["low"] },
+    { name: "Capitola", lat: 36.9741, lon: -121.9535, swell: ["S", "SSW", "W"], wind: ["NW", "N", "glassy"], tide: ["medium"] },
+    { name: "Pleasure Point", lat: 36.9532, lon: -121.9643, swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "medium"] },
+    { name: "26th Ave.", lat: 36.9605, lon: -121.9577, swell: ["SW", "W", "NW"], wind: ["E"], tide: ["low", "incoming"] },
+    { name: "Manresa", lat: 36.8793, lon: -121.8426, swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: ["any", "incoming"] },
+    { name: "Steamer Lane", lat: 36.9510, lon: -122.0256, swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
+    { name: "Indicators", lat: 36.9517, lon: -122.0269, swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
+    { name: "Cowells", lat: 36.9529, lon: -122.0263, swell: ["W", "NW", "S"], wind: ["N", "NW"], tide: ["low", "incoming"] },
+    { name: "Four Mile", lat: 37.0286, lon: -122.1704, swell: ["NW", "W", "WSW"], wind: ["NW", "N", "NE"], tide: ["incoming", "high"] },
+    { name: "Waddell Creek", lat: 37.0935, lon: -122.2830, swell: ["NW", "N", "E", "W"], wind: ["E"], tide: ["incoming", "high"] }
+];
 
-    fetchWeatherGovData();
-});
-
-async function fetchWeatherGovData() {
-    const apiUrl = "https://api.weather.gov/gridpoints/MTR/90,120/forecast"; // Santa Cruz area
-
+async function fetchStormglassData(lat, lon) {
+    const url = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lon}&params=swellDirection,windDirection,tideHeight`;
+    
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("Weather.gov API Error: " + response.statusText);
+        const response = await fetch(url, {
+            headers: {
+                "Authorization": stormglassApiKey
+            }
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch Stormglass data");
 
         const data = await response.json();
-        console.log("Weather.gov Data Received:", data);
-
-        displaySurfAlerts(data);
+        return {
+            swellDirection: data.hours[0]?.swellDirection?.sg || "No Data",
+            windDirection: data.hours[0]?.windDirection?.sg || "No Data",
+            tideHeight: data.hours[0]?.tideHeight?.sg || "No Data"
+        };
     } catch (error) {
-        console.error("Error fetching Weather.gov data:", error);
+        console.error("Error fetching Stormglass data:", error);
+        return null;
     }
 }
 
-function displaySurfAlerts(data) {
-    const surfSpots = [
-        { name: "The Hook", swell: ["W", "NW", "S"], wind: ["E", "NW", "glassy"], tide: ["incoming", "medium"] },
-        { name: "Jack’s (38th St.)", swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["low"] },
-        { name: "Capitola", swell: ["S", "SSW", "W"], wind: ["NW", "N", "glassy"], tide: ["medium"] },
-        { name: "Pleasure Point", swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "medium"] },
-        { name: "26th Ave.", swell: ["SW", "W", "NW"], wind: ["E"], tide: ["low", "incoming"] },
-        { name: "Manresa", swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: ["any", "incoming"] },
-        { name: "Steamer Lane", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
-        { name: "Indicators", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
-        { name: "Cowells", swell: ["W", "NW", "S"], wind: ["N", "NW"], tide: ["low", "incoming"] },
-        { name: "Four Mile", swell: ["NW", "W", "WSW"], wind: ["NW", "N", "NE"], tide: ["incoming", "high"] },
-        { name: "Waddell Creek", swell: ["NW", "N", "E", "W"], wind: ["E"], tide: ["incoming", "high"] }
-    ];
+function getIdealMatch(spot, data) {
+    const isIdealSwell = spot.swell.includes(convertDirection(data.swellDirection));
+    const isIdealWind = spot.wind.includes(convertDirection(data.windDirection));
+    const isIdealTide = spot.tide.includes("incoming") || spot.tide.includes("medium"); 
 
-    const alertsList = document.getElementById("alertsList");
-    alertsList.innerHTML = "";
-
-    if (!data || !data.properties || !data.properties.periods || data.properties.periods.length === 0) {
-        console.error("Invalid Weather.gov data format or missing periods.");
-        return;
-    }
-
-    const forecast = data.properties.periods[0]; // Latest forecast period
-    const windDir = forecast.windDirection || "Unknown";
-
-    // **Fix: Handle Rain Probability Properly**
-    let rainChance = forecast.probabilityOfPrecipitation?.value;
-    rainChance = (rainChance !== undefined && rainChance !== null) ? `${rainChance}%` : "No Data";
-
-    // **Fix: Handle Swell Height Properly**
-    let swellHeight = forecast.waveHeight?.value;
-    swellHeight = (swellHeight !== undefined && swellHeight !== null) ? `${swellHeight} ft` : "No Data";
-
-    // **Check Console Output**
-    console.log(`Extracted Data -> Wind: ${windDir}, Swell Height: ${swellHeight}, Rain Chance: ${rainChance}`);
-
-    surfSpots.forEach(spot => {
-        let matchScore = 0;
-        let description = "";
-
-        // Wind Check
-        if (spot.wind.includes(windDir)) {
-            matchScore += 1;
-            description += `✅ Wind is ideal (${windDir}). `;
-        } else {
-            description += `❌ Wind not optimal (${windDir}). `;
-        }
-
-        // Swell Check
-        if (swellHeight !== "No Data" && parseFloat(swellHeight) > 2) {
-            matchScore += 1;
-            description += `🌊 Swell is solid (${swellHeight}). `;
-        } else {
-            description += `⚠️ Small swell (${swellHeight}). `;
-        }
-
-        // Rain Check
-        if (rainChance !== "No Data" && parseFloat(rainChance) < 20) {
-            matchScore += 1;
-            description += `☀️ Clear skies. `;
-        } else {
-            description += `🌧️ Possible rain (${rainChance}). `;
-        }
-
-        // Set Color Ranking
-        let color = "gray";
-        if (matchScore >= 3) {
-            color = "green";
-        } else if (matchScore === 2) {
-            color = "yellow";
-        } else {
-            color = "red";
-        }
-
-        // Add to Alerts List
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `<strong style="color:${color}">${spot.name}</strong> - ${description}`;
-        alertsList.appendChild(listItem);
-    });
-
-    console.log("✅ Surf Alerts Updated!");
+    return {
+        swell: isIdealSwell ? "✔️ Wind is ideal" : "❌ Wind not ideal",
+        wind: isIdealWind ? "✔️ Swell is ideal" : "⚠️ Small swell",
+        tide: isIdealTide ? "✔️ Tide is good" : "⚠️ Check tide"
+    };
 }
+
+function convertDirection(deg) {
+    if (deg === "No Data") return "No Data";
+    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    return directions[Math.round(deg / 45) % 8];
+}
+
+async function displaySurfAlerts() {
+    const alertContainer = document.getElementById("surf-alerts");
+    alertContainer.innerHTML = "<h2>Surf Spot Alerts</h2>";
+
+    for (const spot of surfSpots) {
+        const data = await fetchStormglassData(spot.lat, spot.lon);
+        if (!data) continue;
+
+        const match = getIdealMatch(spot, data);
+
+        alertContainer.innerHTML += `
+            <div class="surf-spot">
+                <strong>${spot.name}</strong>: ${match.swell}, ${match.wind}, ${match.tide}
+            </div>
+        `;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", displaySurfAlerts);
