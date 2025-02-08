@@ -1,29 +1,26 @@
+const NOAA_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/surf.json";
+const PROXY_URL = "https://cors-anywhere.herokuapp.com/";
+const WINDY_API_URL = "https://api.windy.com/api/point-forecast/v2";
+const WINDY_API_KEY = "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH";
+
 const surfSpots = [
     { name: "The Hook", swell: ["W", "NW", "S"], wind: ["E", "NW", "glassy"], tide: ["incoming", "medium"] },
     { name: "Jack’s (38th St.)", swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["low"] },
     { name: "Capitola", swell: ["S", "SSW", "W"], wind: ["NW", "N", "glassy"], tide: ["medium"] },
     { name: "Pleasure Point", swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "medium"] },
     { name: "26th Ave.", swell: ["SW", "W", "NW"], wind: ["E"], tide: ["low", "incoming"] },
-    { name: "Manresa", swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: ["incoming", "any"] },
+    { name: "Manresa", swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: ["any", "incoming"] },
     { name: "Steamer Lane", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
     { name: "Indicators", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
     { name: "Cowells", swell: ["W", "NW", "S"], wind: ["N", "NW"], tide: ["low", "incoming"] },
     { name: "Four Mile", swell: ["NW", "W", "WSW"], wind: ["NW", "N", "NE"], tide: ["incoming", "high"] },
-    { name: "Waddell Creek", swell: ["NW", "W", "N", "E"], wind: ["E"], tide: ["incoming", "high"] }
+    { name: "Waddell Creek", swell: ["W", "NW", "N"], wind: ["E"], tide: ["incoming", "high"] },
 ];
-
-// Windy API Key (Replace with your actual API Key)
-const WINDY_API_KEY = "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH";
-
-// NOAA API Endpoint
-const NOAA_API_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/surf.json"; // Updated with `.json` if needed
 
 async function fetchNOAAData() {
     try {
-        const response = await fetch(NOAA_API_URL);
-        if (!response.ok) throw new Error(`NOAA API Error: ${response.statusText}`);
+        const response = await fetch(PROXY_URL + NOAA_API_URL);
         const data = await response.json();
-        console.log("NOAA Data:", data);
         return data;
     } catch (error) {
         console.error("Error fetching NOAA data:", error);
@@ -31,15 +28,12 @@ async function fetchNOAAData() {
     }
 }
 
-async function fetchWindyData() {
-    const WINDY_API_URL = `https://api.windy.com/api/point-forecast/v2?lat=36.985695&lon=-122.00287&model=gfs&parameters=wind,waves&key=y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH`;
-                        
-    
+async function fetchWindyData(lat, lon) {
     try {
-        const response = await fetch(WINDY_API_URL);
-        if (!response.ok) throw new Error(`Windy API Error: ${response.statusText}`);
+        const response = await fetch(
+            `${WINDY_API_URL}?lat=${lat}&lon=${lon}&model=gfs&parameters=wind,swell&key=${WINDY_API_KEY}`
+        );
         const data = await response.json();
-        console.log("Windy API Data:", data);
         return data;
     } catch (error) {
         console.error("Error fetching Windy API data:", error);
@@ -48,46 +42,48 @@ async function fetchWindyData() {
 }
 
 async function displaySurfAlerts() {
+    console.log("Fetching Surf Spot Alerts...");
+    
     const noaaData = await fetchNOAAData();
-    const windyData = await fetchWindyData();
+    const windyData = await fetchWindyData(36.985695, -122.00287);
 
     if (!noaaData || !windyData) {
         console.error("Failed to retrieve data.");
         return;
     }
 
-    const currentSwell = windyData.swell || "W"; // Placeholder, adjust based on API response
-    const currentWind = windyData.wind || "NW"; // Placeholder, adjust based on API response
-    const currentTide = noaaData.tide || "incoming"; // Placeholder, adjust based on API response
-
     let bestSpot = null;
     let bestScore = 0;
+    let bestDescription = "";
 
-    surfSpots.forEach(spot => {
+    surfSpots.forEach((spot) => {
         let score = 0;
 
-        if (spot.swell.includes(currentSwell)) score += 2;
-        if (spot.wind.includes(currentWind)) score += 2;
-        if (spot.tide.includes(currentTide)) score += 1;
+        if (spot.swell.includes(windyData.swell)) score++;
+        if (spot.wind.includes(windyData.wind)) score++;
+        if (spot.tide.includes(noaaData.tide)) score++;
 
         if (score > bestScore) {
+            bestSpot = spot.name;
             bestScore = score;
-            bestSpot = spot;
+            bestDescription = `Best conditions for ${spot.name}: Swell - ${spot.swell.join(
+                ", "
+            )}, Wind - ${spot.wind.join(", ")}, Tide - ${spot.tide.join(", ")}.`;
         }
     });
 
-    const alertList = document.getElementById("alertList");
-    alertList.innerHTML = "";
+    const alertBox = document.getElementById("surfAlerts");
 
     if (bestSpot) {
-        let alertItem = document.createElement("li");
-        alertItem.innerHTML = `<strong>${bestSpot.name}</strong> - Best spot based on current conditions!`;
-        alertList.appendChild(alertItem);
+        alertBox.innerHTML = `<h2>Best Surf Spot: ${bestSpot}</h2>
+                              <p>${bestDescription}</p>`;
+        alertBox.style.backgroundColor = "lightgreen";
     } else {
-        let alertItem = document.createElement("li");
-        alertItem.innerHTML = "No optimal surf spots found based on current conditions.";
-        alertList.appendChild(alertItem);
+        alertBox.innerHTML = `<h2>No ideal conditions found.</h2>`;
+        alertBox.style.backgroundColor = "lightcoral";
     }
 }
 
-window.onload = displaySurfAlerts;
+document.addEventListener("DOMContentLoaded", () => {
+    displaySurfAlerts();
+});
