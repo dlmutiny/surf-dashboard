@@ -1,40 +1,22 @@
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Fetching Surf Data...");
 
-    fetchNOAAData();
-    fetchWindyData();
+    fetchWeatherGovData();
 });
 
-async function fetchNOAAData() {
-    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
-    const noaaUrl = "https://api.weather.gov/gridpoints/MTR/90,120/forecast";  // NOAA API for Santa Cruz
+async function fetchWeatherGovData() {
+    const apiUrl = "https://api.weather.gov/gridpoints/MTR/90,120/forecast";  // Forecast for Santa Cruz area
 
     try {
-        const response = await fetch(proxyUrl + noaaUrl);
-        if (!response.ok) throw new Error("NOAA API Error: " + response.statusText);
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("Weather.gov API Error: " + response.statusText);
 
         const data = await response.json();
-        console.log("NOAA Data Received:", data);
+        console.log("Weather.gov Data Received:", data);
 
         displaySurfAlerts(data);
     } catch (error) {
-        console.error("Error fetching NOAA data:", error);
-    }
-}
-
-async function fetchWindyData() {
-    const windyUrl = `https://api.windy.com/api/point-forecast/v2?lat=36.985695&lon=-122.00287&model=gfs&parameters=wind,swell&key=y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH`;
-
-    try {
-        const response = await fetch(windyUrl);
-        if (!response.ok) throw new Error("Windy API Error: " + response.statusText);
-
-        const data = await response.json();
-        console.log("Wind Data Received:", data);
-
-        displaySurfAlerts(data);
-    } catch (error) {
-        console.error("Error fetching Windy API data:", error);
+        console.error("Error fetching Weather.gov data:", error);
     }
 }
 
@@ -64,38 +46,39 @@ function displaySurfAlerts(data) {
     const alertsList = document.getElementById("alertsList");
     alertsList.innerHTML = "";
 
+    if (!data || !data.properties || !data.properties.periods) {
+        console.error("Invalid Weather.gov data format.");
+        return;
+    }
+
+    const forecast = data.properties.periods[0];  // Get the latest forecast period
+    const windDir = forecast.windDirection || "Unknown";
+    const swellHeight = forecast.waveHeight || "Unknown";
+    const rainChance = forecast.probabilityOfPrecipitation || "Unknown";
+
     surfSpots.forEach(spot => {
         let matchScore = 0;
         let description = "";
 
-        if (data?.properties?.periods?.[0]?.windDirection) {
-            const windDir = data.properties.periods[0].windDirection;
-            if (spot.wind.includes(windDir)) {
-                matchScore += 1;
-                description += `✅ Wind is ideal (${windDir}). `;
-            } else {
-                description += `❌ Wind not optimal (${windDir}). `;
-            }
+        if (spot.wind.includes(windDir)) {
+            matchScore += 1;
+            description += `✅ Wind is ideal (${windDir}). `;
+        } else {
+            description += `❌ Wind not optimal (${windDir}). `;
         }
 
-        if (data?.properties?.periods?.[0]?.waveHeight) {
-            const swellHeight = data.properties.periods[0].waveHeight;
-            if (swellHeight > 2) {
-                matchScore += 1;
-                description += `🌊 Swell is solid (${swellHeight} ft). `;
-            } else {
-                description += `⚠️ Small swell (${swellHeight} ft). `;
-            }
+        if (swellHeight !== "Unknown" && swellHeight > 2) {
+            matchScore += 1;
+            description += `🌊 Swell is solid (${swellHeight} ft). `;
+        } else {
+            description += `⚠️ Small swell (${swellHeight} ft). `;
         }
 
-        if (data?.properties?.periods?.[0]?.probabilityOfPrecipitation) {
-            const rainChance = data.properties.periods[0].probabilityOfPrecipitation;
-            if (rainChance < 20) {
-                matchScore += 1;
-                description += `☀️ Clear skies. `;
-            } else {
-                description += `🌧️ Possible rain (${rainChance}%). `;
-            }
+        if (rainChance !== "Unknown" && rainChance < 20) {
+            matchScore += 1;
+            description += `☀️ Clear skies. `;
+        } else {
+            description += `🌧️ Possible rain (${rainChance}%). `;
         }
 
         let color = "gray";
