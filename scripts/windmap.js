@@ -34,8 +34,10 @@ async function updateWindOverlay() {
         const gridStep = 0.5;
         const nx = Math.round((lonEnd - lonStart) / gridStep) + 1;
         const ny = Math.round((latEnd - latStart) / gridStep) + 1;
-        let uComp = new Array(nx * ny).fill(0); // Ensure the exact length
-        let vComp = new Array(nx * ny).fill(0);
+
+        // Create Typed Arrays (Fixes forEach issue)
+        let uComp = new Float32Array(nx * ny);
+        let vComp = new Float32Array(nx * ny);
 
         let i = 0;
         for (let lat = latStart; lat <= latEnd; lat += gridStep) {
@@ -54,6 +56,8 @@ async function updateWindOverlay() {
             }
         }
 
+        console.log(`🧐 Checking Data Lengths: uComp=${uComp.length}, vComp=${vComp.length}, Expected=${nx * ny}`);
+
         // Format data for Leaflet-Velocity
         const velocityData = {
             uComponent: {
@@ -67,7 +71,7 @@ async function updateWindOverlay() {
                     nx: nx, 
                     ny: ny
                 },
-                data: uComp
+                data: Array.from(uComp) // Convert back to normal array
             },
             vComponent: {
                 header: {
@@ -80,7 +84,7 @@ async function updateWindOverlay() {
                     nx: nx,
                     ny: ny
                 },
-                data: vComp
+                data: Array.from(vComp) // Convert back to normal array
             }
         };
 
