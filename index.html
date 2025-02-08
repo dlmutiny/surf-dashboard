@@ -5,76 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surf Forecast Dashboard</title>
 
-    <!-- Leaflet Map CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet Map (Compatible Version for Windy API) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    
+    <!-- Windy API -->
+    <script src="https://api.windy.com/assets/map-forecast/libBoot.js"></script>
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="styles/main.css">
 
-    <!-- Use a Leaflet version compatible with Windy API -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
-  
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Windy API -->
-    <script src="https://api.windy.com/assets/map-forecast/libBoot.js"></script>
-
-    <!-- Include Scripts -->
-    <script src="scripts/windmap.js" defer></script>
-    <script src="scripts/alerts.js" defer></script>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-
-        h1 {
-            text-align: center;
-            padding: 20px;
-            background: #fff;
-            margin: 0;
-        }
-
-        #windMap {
-            height: 500px;
-            width: 100%;
-        }
-
-        #surfAlerts {
-            padding: 20px;
-            background: white;
-            margin: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .alert {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-
-        .excellent { background-color: #4CAF50; color: white; }
-        .good { background-color: #FFD700; color: black; }
-        .fair { background-color: #FFA500; color: white; }
-        .poor { background-color: #FF4500; color: white; }
-    </style>
 </head>
 <body>
     <h1>Surf Forecast Dashboard</h1>
 
     <!-- Wind Map Container -->
-    <div id="windMap"></div>
+    <div id="windyMap" style="height: 500px; width: 100%;"></div>
 
-    <!-- Surf Alerts Section -->
-    <div id="surfAlerts">
-        <h2>Surf Spot Alerts</h2>
-        <p>Loading surf conditions...</p>
+    <!-- Surf Alerts Display -->
+    <div id="surfAlerts" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f8f8f8;">
+        <h2>Surf Alerts</h2>
+        <ul id="alertList"></ul>
     </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="scripts/windmap.js"></script>
+    <script src="scripts/alerts.js"></script>
 
 </body>
 </html>
