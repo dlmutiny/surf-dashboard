@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surf Forecast Dashboard</title>
+    <title>Surf Dashboard</title>
 
-    <!-- Leaflet Map (Compatible Version for Windy API) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css" />
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- Windy API -->
     <script src="https://api.windy.com/assets/map-forecast/libBoot.js"></script>
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="styles/main.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 <body>
     <h1>Surf Forecast Dashboard</h1>
 
-    <!-- Wind Map Container -->
+    <!-- Windy Map Container -->
     <div id="windyMap" style="height: 500px; width: 100%;"></div>
 
-    <!-- Surf Alerts Display -->
-    <div id="surfAlerts" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f8f8f8;">
-        <h2>Surf Alerts</h2>
-        <ul id="alertList"></ul>
-    </div>
+    <!-- Surf Spot Alerts -->
+    <div id="surfAlerts" style="padding: 20px; background: #f8f8f8; border-radius: 5px;"></div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.js"></script>
-    
-    <!-- Custom Scripts -->
+    <!-- Include Scripts -->
     <script src="scripts/windmap.js"></script>
     <script src="scripts/alerts.js"></script>
-
 </body>
 </html>
