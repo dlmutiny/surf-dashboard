@@ -1,14 +1,15 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #111;
+    background: #111;
     color: white;
+    margin: 0;
+    padding: 0;
     text-align: center;
 }
 
 h1 {
-    font-size: 28px;
-    font-weight: bold;
-    margin-top: 10px;
+    font-size: 24px;
+    padding: 10px;
 }
 
 #windy-map {
@@ -18,14 +19,22 @@ h1 {
 
 #alerts-container {
     background: #222;
-    padding: 15px;
-    border-radius: 10px;
+    padding: 10px;
+    border-radius: 5px;
     margin: 10px;
+}
+
+#alerts-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .alert {
     background: #333;
-    padding: 10px;
+    padding: 15px;
     margin: 5px;
     border-radius: 5px;
+    width: 300px;
+    text-align: left;
 }
