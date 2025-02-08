@@ -17,7 +17,7 @@ let windLayer;
 
 async function updateWindOverlay() {
     try {
-        console.log("Fetching Wind Data...");
+        console.log("🌍 Fetching Wind Data...");
         const windResponse = await fetch(
             "https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto"
         );
@@ -79,6 +79,9 @@ async function updateWindOverlay() {
                 data: vComp
             }
         };
+
+        // 🔹 Log the formatted wind data to inspect its structure
+        console.log("🧐 Wind Data Structure Before Passing to Leaflet-Velocity:", JSON.stringify(velocityData, null, 2));
 
         // Remove old wind layer if present
         if (windLayer) {
