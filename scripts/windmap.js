@@ -1,7 +1,7 @@
 const windyAPIKey = "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH";
 
 function initializeWindyMap() {
-    if (typeof W === "undefined") {
+    if (typeof windyInit === "undefined") {
         console.error("Windy API is not loaded correctly.");
         return;
     }
@@ -21,4 +21,6 @@ function initializeWindyMap() {
     );
 }
 
-document.addEventListener("DOMContentLoaded", initializeWindyMap);
+// Wait for Windy API to load before initializing
+window.onload = initializeWindyMap;
+
