@@ -5,18 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surf Forecast Dashboard</title>
     <link rel="stylesheet" href="styles/main.css">
-    <script defer src="scripts/windmap.js"></script>
-    <script defer src="scripts/alerts.js"></script>
 </head>
 <body>
-    <h1>Surf Forecast Dashboard</h1>
+    <header>
+        <h1>Surf Forecast Dashboard</h1>
+    </header>
 
-    <!-- Windy.com Map Container -->
-    <div id="windy-map" style="width: 100%; height: 500px;"></div>
+    <main>
+        <section id="windy-map">
+            <!-- Windy API Map Container -->
+            <div id="windy"></div>
+        </section>
 
-    <!-- Surf Spot Alerts -->
-    <div id="surf-alerts" style="padding: 20px; background: #f8f8f8;">
-        <h2>Surf Spot Alerts</h2>
-    </div>
+        <section id="surf-alerts">
+            <h2>Surf Spot Alerts</h2>
+            <div id="alerts-container">Loading surf alerts...</div>
+        </section>
+    </main>
+
+    <script src="scripts/config.js"></script>
+    <script src="scripts/windmap.js"></script>
+    <script src="scripts/forecast.js"></script>
+    <script src="scripts/tides.js"></script>
+    <script src="scripts/alerts.js"></script>
 </body>
 </html>
