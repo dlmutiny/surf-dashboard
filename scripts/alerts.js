@@ -32,8 +32,9 @@ async function fetchNOAAData() {
 }
 
 async function fetchWindyData() {
-    const WINDY_API_URL = `https://api.windy.com/api/point-forecast/v2?lat=36.985695&lon=-122.00287&model=gfs&parameters=wind,swell&key=${WINDY_API_KEY}`;
-
+    const WINDY_API_URL = `https://api.windy.com/api/point-forecast/v2?lat=36.985695&lon=-122.00287&model=gfs&parameters=wind,waves&key=y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH`;
+                        
+    
     try {
         const response = await fetch(WINDY_API_URL);
         if (!response.ok) throw new Error(`Windy API Error: ${response.statusText}`);
