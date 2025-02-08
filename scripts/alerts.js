@@ -22,25 +22,17 @@ async function fetchWeatherGovData() {
 
 function displaySurfAlerts(data) {
     const surfSpots = [
-        {
-            name: "The Hook",
-            swell: ["W", "NW", "S"],
-            wind: ["E", "NW", "glassy"],
-            tide: ["incoming", "medium"]
-        },
-        {
-            name: "Jack’s (38th St.)",
-            swell: ["SSW", "SW", "W", "NW"],
-            wind: ["NE", "N", "NW", "glassy"],
-            tide: ["low"]
-        },
-        {
-            name: "Pleasure Point",
-            swell: ["SSW", "SW", "W", "WNW"],
-            wind: ["NE", "N", "NW", "glassy"],
-            tide: ["incoming", "medium"]
-        }
-        // Add other surf spots following the same format
+        { name: "The Hook", swell: ["W", "NW", "S"], wind: ["E", "NW", "glassy"], tide: ["incoming", "medium"] },
+        { name: "Jack’s (38th St.)", swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["low"] },
+        { name: "Capitola", swell: ["S", "SSW", "W"], wind: ["NW", "N", "glassy"], tide: ["medium"] },
+        { name: "Pleasure Point", swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "medium"] },
+        { name: "26th Ave.", swell: ["SW", "W", "NW"], wind: ["E"], tide: ["low", "incoming"] },
+        { name: "Manresa", swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: ["any", "incoming"] },
+        { name: "Steamer Lane", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
+        { name: "Indicators", swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: ["incoming", "low", "medium"] },
+        { name: "Cowells", swell: ["W", "NW", "S"], wind: ["N", "NW"], tide: ["low", "incoming"] },
+        { name: "Four Mile", swell: ["NW", "W", "WSW"], wind: ["NW", "N", "NE"], tide: ["incoming", "high"] },
+        { name: "Waddell Creek", swell: ["NW", "N", "E", "W"], wind: ["E"], tide: ["incoming", "high"] }
     ];
 
     const alertsList = document.getElementById("alertsList");
