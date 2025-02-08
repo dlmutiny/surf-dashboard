@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 async function fetchWeatherGovData() {
-    const apiUrl = "https://api.weather.gov/gridpoints/MTR/90,120/forecast"; // Forecast for Santa Cruz area
+    const apiUrl = "https://api.weather.gov/gridpoints/MTR/90,120/forecast"; // Santa Cruz area
 
     try {
         const response = await fetch(apiUrl);
@@ -43,13 +43,18 @@ function displaySurfAlerts(data) {
         return;
     }
 
-    const forecast = data.properties.periods[0];  // Get the latest forecast period
+    const forecast = data.properties.periods[0];  // Latest forecast period
     const windDir = forecast.windDirection || "Unknown";
-    const rainChance = forecast.probabilityOfPrecipitation.value ?? "Unknown"; // Ensure rainChance is a number
+    let rainChance = "Unknown";
     let swellHeight = "Unknown";
 
-    // Extract swell height correctly
-    if (forecast.waveHeight && typeof forecast.waveHeight === "object" && forecast.waveHeight.value !== null) {
+    // **Fix: Extract Rain Probability Properly**
+    if (forecast.probabilityOfPrecipitation && typeof forecast.probabilityOfPrecipitation.value === "number") {
+        rainChance = `${forecast.probabilityOfPrecipitation.value}%`;
+    }
+
+    // **Fix: Extract Swell Height Properly**
+    if (forecast.waveHeight && typeof forecast.waveHeight.value === "number") {
         swellHeight = `${forecast.waveHeight.value} ft`;
     }
 
@@ -74,11 +79,11 @@ function displaySurfAlerts(data) {
         }
 
         // Rain Check
-        if (rainChance !== "Unknown" && rainChance < 20) {
+        if (rainChance !== "Unknown" && parseFloat(rainChance) < 20) {
             matchScore += 1;
             description += `☀️ Clear skies. `;
         } else {
-            description += `🌧️ Possible rain (${rainChance}%). `;
+            description += `🌧️ Possible rain (${rainChance}). `;
         }
 
         // Set Color Ranking
