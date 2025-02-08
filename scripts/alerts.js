@@ -1,60 +1,47 @@
 async function checkSurfSpots() {
     try {
-        // Fetch Marine Data (Wave Height & Wave Period)
+        console.log("Fetching Surf Data...");
         const marineResponse = await fetch(
             "https://marine-api.open-meteo.com/v1/marine?latitude=37&longitude=-122&hourly=wave_height,wave_period&timezone=auto"
         );
         const marineData = await marineResponse.json();
+        console.log("✅ Marine Data Received:", marineData);
 
-        // Fetch Wind Data Separately from Weather API
         const windResponse = await fetch(
             "https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto"
         );
         const windData = await windResponse.json();
+        console.log("✅ Wind Data Received:", windData);
 
-        // Check if responses contain expected data
         if (!marineData.hourly || !marineData.hourly.wave_height) {
             console.error("❌ Wave height data is missing!");
             return;
         }
-
         if (!windData.hourly || !windData.hourly.windspeed_10m) {
             console.error("❌ Wind data is missing!");
             return;
         }
 
-        // Extract Marine Data
-        const waveHeight = marineData.hourly.wave_height[0]; // Latest wave height
-        const wavePeriod = marineData.hourly.wave_period[0]; // Latest wave period
+        const waveHeight = marineData.hourly.wave_height[0];
+        const windSpeed = windData.hourly.windspeed_10m[0];
 
-        // Extract Wind Data
-        const windSpeed = windData.hourly.windspeed_10m[0]; // Latest wind speed
-        const windDirection = windData.hourly.winddirection_10m[0]; // Latest wind direction
+        console.log(`✅ Wave Height: ${waveHeight}m, Wind Speed: ${windSpeed} km/h`);
 
         let alerts = [];
-
-        // Generate Surf Spot Alerts
         if (waveHeight >= 5) {
             alerts.push("🔥 Good waves at Steamer Lane! (5ft+)");
-        } else if (waveHeight < 2) {
-            alerts.push("⚠️ Waves are too small for decent surf.");
         }
-
         if (windSpeed < 10) {
             alerts.push("💨 Light offshore wind - Clean conditions!");
-        } else if (windSpeed > 20) {
-            alerts.push("⚠️ Strong winds - Could be messy!");
         }
 
-        // Display Alerts
         showAlerts(alerts);
-
     } catch (error) {
         console.error("⚠️ Error fetching surf conditions:", error);
     }
 }
 
-// Display alerts on-screen
+// Function to show alerts
 function showAlerts(messages) {
     let alertBox = document.getElementById("alertBox");
     if (!alertBox) {
@@ -78,3 +65,4 @@ function showAlerts(messages) {
 // Run every 10 minutes
 checkSurfSpots();
 setInterval(checkSurfSpots, 600000);
+
