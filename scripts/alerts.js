@@ -46,15 +46,13 @@ function displaySurfAlerts(data) {
     const forecast = data.properties.periods[0]; // Latest forecast period
     const windDir = forecast.windDirection || "Unknown";
 
-    // **Fix: Extract Rain Probability Properly**
-    let rainChance = forecast.probabilityOfPrecipitation?.value !== undefined
-        ? `${forecast.probabilityOfPrecipitation.value}%`
-        : "No Data";
+    // **Fix: Handle Rain Probability Properly**
+    let rainChance = forecast.probabilityOfPrecipitation?.value;
+    rainChance = (rainChance !== undefined && rainChance !== null) ? `${rainChance}%` : "No Data";
 
-    // **Fix: Extract Swell Height Properly**
-    let swellHeight = forecast.waveHeight?.value !== undefined
-        ? `${forecast.waveHeight.value} ft`
-        : "No Data";
+    // **Fix: Handle Swell Height Properly**
+    let swellHeight = forecast.waveHeight?.value;
+    swellHeight = (swellHeight !== undefined && swellHeight !== null) ? `${swellHeight} ft` : "No Data";
 
     // **Check Console Output**
     console.log(`Extracted Data -> Wind: ${windDir}, Swell Height: ${swellHeight}, Rain Chance: ${rainChance}`);
