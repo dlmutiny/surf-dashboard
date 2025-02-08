@@ -49,13 +49,17 @@ function displaySurfAlerts(data) {
     let swellHeight = "Unknown";
 
     // **Fix: Extract Rain Probability Properly**
-    if (forecast.probabilityOfPrecipitation && typeof forecast.probabilityOfPrecipitation.value === "number") {
+    if (forecast.probabilityOfPrecipitation && forecast.probabilityOfPrecipitation.value !== null) {
         rainChance = `${forecast.probabilityOfPrecipitation.value}%`;
+    } else {
+        rainChance = "No Data";
     }
 
     // **Fix: Extract Swell Height Properly**
-    if (forecast.waveHeight && typeof forecast.waveHeight.value === "number") {
+    if (forecast.waveHeight && forecast.waveHeight.value !== null) {
         swellHeight = `${forecast.waveHeight.value} ft`;
+    } else {
+        swellHeight = "No Data";
     }
 
     surfSpots.forEach(spot => {
@@ -71,7 +75,7 @@ function displaySurfAlerts(data) {
         }
 
         // Swell Check
-        if (swellHeight !== "Unknown" && parseFloat(swellHeight) > 2) {
+        if (swellHeight !== "No Data" && parseFloat(swellHeight) > 2) {
             matchScore += 1;
             description += `🌊 Swell is solid (${swellHeight}). `;
         } else {
@@ -79,7 +83,7 @@ function displaySurfAlerts(data) {
         }
 
         // Rain Check
-        if (rainChance !== "Unknown" && parseFloat(rainChance) < 20) {
+        if (rainChance !== "No Data" && parseFloat(rainChance) < 20) {
             matchScore += 1;
             description += `☀️ Clear skies. `;
         } else {
