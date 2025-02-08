@@ -1,8 +1,10 @@
+let map; // Declare map globally so all functions can access it
+
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM fully loaded. Initializing map...");
 
     // Initialize Leaflet Map
-    const map = L.map("windMap").setView([37, -122], 5);
+    map = L.map("windMap").setView([37, -122], 5);
     L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png").addTo(map);
 
     console.log("Map initialized successfully.");
@@ -13,6 +15,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 async function updateWindOverlay() {
     console.log("Fetching Wind Data...");
+
+    if (!map) {
+        console.error("Map is not initialized yet!");
+        return;
+    }
 
     try {
         const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=wind_speed_10m,winddirection_10m&timezone=auto");
