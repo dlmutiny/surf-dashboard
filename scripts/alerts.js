@@ -43,8 +43,8 @@ function getIdealMatch(spot, data) {
     const isIdealTide = spot.tide.includes("incoming") || spot.tide.includes("medium"); 
 
     return {
-        swell: isIdealSwell ? "✔️ Wind is ideal" : "❌ Wind not ideal",
-        wind: isIdealWind ? "✔️ Swell is ideal" : "⚠️ Small swell",
+        swell: isIdealSwell ? "✔️ Swell is ideal" : "⚠️ Small swell",
+        wind: isIdealWind ? "✔️ Wind is ideal" : "❌ Wind not ideal",
         tide: isIdealTide ? "✔️ Tide is good" : "⚠️ Check tide"
     };
 }
@@ -57,6 +57,11 @@ function convertDirection(deg) {
 
 async function displaySurfAlerts() {
     const alertContainer = document.getElementById("surf-alerts");
+    if (!alertContainer) {
+        console.error("Error: #surf-alerts container not found.");
+        return;
+    }
+
     alertContainer.innerHTML = "<h2>Surf Spot Alerts</h2>";
 
     for (const spot of surfSpots) {
