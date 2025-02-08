@@ -1,4 +1,7 @@
-import "leaflet-velocity"; // Wind visualization plugin
+// Load Windy Wind Plugin
+const windyScript = document.createElement("script");
+windyScript.src = "./scripts/windy-plugin-wind.js";
+document.head.appendChild(windyScript);
 
 const map = L.map("windMap", {
     center: [37, -122], 
@@ -9,84 +12,32 @@ const map = L.map("windMap", {
     minZoom: 3
 }).setView([37, -122], 5);
 
-// Add OpenStreetMap Tiles as Base
+// Add OpenStreetMap Tiles as Base Layer
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 10
 }).addTo(map);
 
-// Add Heatmap Overlay (Temperature from OpenWeather)
-const heatmapLayer = L.tileLayer(
-    "https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=YOUR_OPENWEATHER_API_KEY",
-    {
-        attribution: "&copy; OpenWeatherMap",
-        opacity: 0.5
-    }
-).addTo(map);
+// Initialize Windy Wind Plugin
+windyScript.onload = () => {
+    console.log("✅ Windy Plugin Loaded");
 
-// Wind Velocity Layer (for Windy-Style Overlays)
-let windLayer;
+    // Create Wind Layer
+    const windLayer = new WindyPluginWind({
+        map: map, // Attach to Leaflet Map
+        apiKey: "YOUR_WINDY_API_KEY", // Get Free API Key from Windy.com
+        opacity: 0.7, // Adjust transparency
+        particleColor: "rgba(255, 255, 255, 0.8)", // White wind particles
+        speedFactor: 0.02, // Adjust animation speed
+        lineWidth: 1.5, // Thickness of wind lines
+    });
 
-async function updateWindOverlay() {
-    try {
-        console.log("Fetching Wind Data...");
-        const windResponse = await fetch(
-            "https://api.open-meteo.com/v1/forecast?latitude=37&longitude=-122&hourly=windspeed_10m,winddirection_10m&timezone=auto"
-        );
-        const windData = await windResponse.json();
-        console.log("✅ Wind Data Received:", windData);
+    windLayer.addTo(map);
+    console.log("✅ Windy-Style Wind Overlay Added");
+};
 
-        if (!windData.hourly || !windData.hourly.windspeed_10m) {
-            console.error("❌ Wind Data Missing!");
-            return;
-        }
-
-        // Convert API Data to Leaflet Velocity Format
-        const windSpeed = windData.hourly.windspeed_10m;
-        const windDirection = windData.hourly.winddirection_10m;
-        const numPoints = windSpeed.length;
-
-        const windArray = [];
-        for (let i = 0; i < numPoints; i++) {
-            windArray.push({
-                lat: 37,
-                lon: -122,
-                u: windSpeed[i] * Math.cos((windDirection[i] * Math.PI) / 180),
-                v: windSpeed[i] * Math.sin((windDirection[i] * Math.PI) / 180)
-            });
-        }
-
-        console.log("✅ Wind Data Processed for Overlay");
-
-        // Remove existing Wind Layer if present
-        if (windLayer) {
-            map.removeLayer(windLayer);
-        }
-
-        // Create Wind Layer
-        windLayer = L.velocityLayer({
-            displayValues: true,
-            displayOptions: {
-                velocityType: "Wind",
-                position: "bottomleft",
-                emptyString: "No wind data",
-                angleConvention: "from",
-                showDirectionLabel: true
-            },
-            data: {
-                u: windSpeed.map((ws, i) => ws * Math.cos((windDirection[i] * Math.PI) / 180)),
-                v: windSpeed.map((ws, i) => ws * Math.sin((windDirection[i] * Math.PI) / 180)),
-                lat: 37,
-                lon: -122
-            }
-        }).addTo(map);
-
-        console.log("✅ Wind Overlay Updated Successfully!");
-    } catch (error) {
-        console.error("⚠️ Wind Overlay Update Failed:", error);
-    }
-}
-
-// Update Wind Overlay Every 10 Minutes
-updateWindOverlay();
-setInterval(updateWindOverlay, 600000);
+// Refresh Wind Data Every 10 Minutes
+setInterval(() => {
+    console.log("🔄 Refreshing Wind Overlay...");
+    windyScript.onload();
+}, 600000);
