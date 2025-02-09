@@ -3,15 +3,30 @@
 async function fetchBuoyData() {
     try {
         const response = await fetch('http://74.207.247.30:3000/api/noaa-buoy');
-        if (!response.ok) throw new Error('Failed to fetch buoy data');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-        const data = await response.text();
-        return parseBuoyData(data);
+        const jsonData = await response.json();
+        if (!jsonData || !jsonData.data) throw new Error("Invalid data structure received");
+
+        const rawData = jsonData.data.trim(); // Remove leading/trailing whitespace
+        const lines = rawData.split("\n"); // Split into lines
+        
+        console.log("Raw NOAA Buoy Data:", rawData);
+        console.log("Parsed Lines:", lines);
+
+        return lines;
     } catch (error) {
         console.error('Error fetching NOAA buoy data:', error);
         return null;
     }
 }
+
+// Call the function for debugging
+fetchBuoyData().then(lines => {
+    if (lines) {
+        console.log("Successfully fetched and parsed buoy data:", lines);
+    }
+});
 
 function parseBuoyData(data) {
     const lines = data.trim().split("\n");
