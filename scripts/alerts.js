@@ -22,27 +22,18 @@ function convertDegreesToCompass(degrees) {
 }
 
 // Fetch tide data from Stormglass
-async function fetchStormglassTide(spot) {
+async function fetchTideData(spot) {
     try {
-        const tideUrl = `https://api.stormglass.io/v2/tide/extremes/point?lat=${spot.lat}&lng=${spot.lng}`;
-        const response = await fetch(tideUrl, {
-            headers: { "Authorization": stormglassApiKey }
-        });
-
-        const tideData = await response.json();
-        console.log(`🌊 Tide data for ${spot.name}:`, tideData);
-
-        if (!response.ok || !tideData.extremes) {
-            console.warn(`⚠ No valid tide data for ${spot.name}`);
-            return null;
-        }
-
-        return tideData.extremes;
+        const response = await fetch(`http://localhost:3000/tide-data?lat=${spot.lat}&lng=${spot.lng}`);
+        const data = await response.json();
+        console.log(`🌊 Tide data for ${spot.name}:`, data);
+        return data;
     } catch (error) {
         console.error(`🚨 Error fetching tide data for ${spot.name}:`, error);
         return null;
     }
 }
+
 
 // Fetch surf forecast from Stormglass
 async function fetchStormglassData(spot) {
