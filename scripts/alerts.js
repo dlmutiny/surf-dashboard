@@ -31,18 +31,20 @@ async function fetchStormglassData(spot) {
         });
 
         const data = await response.json();
+        console.log(`🌊 Raw Stormglass API response for ${spot.name}:`, data);  // <-- Add this line
 
         if (!response.ok || !data.hours || data.hours.length === 0) {
             console.warn(`⚠ No valid data for ${spot.name}`);
             return null;
         }
 
-        return data.hours[0];  // Get the first forecast hour
+        return data.hours[0];  
     } catch (error) {
         console.error(`🚨 Error fetching Stormglass data for ${spot.name}:`, error);
         return null;
     }
 }
+
 
 // Display surf alerts
 async function displaySurfAlerts() {
