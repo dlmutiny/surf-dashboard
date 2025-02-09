@@ -57,11 +57,44 @@ function displayAlert(name, isGood, windDir, swellDir, swellHeight) {
     alert.innerHTML = `
         <strong>${name} ${isGood ? "✅" : "❌ Not Ideal"}</strong>
         🌬️ Wind: ${convertWindDirection(windDir)} (${windDir}°) <br>
-        🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${swellHeight}m
+        🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${swellHeight}m <br>
+        🌊 Tide: <span id="tide-${name}">Loading...</span>
     `;
 
     alertContainer.appendChild(alert);
+
+    // Fetch tide data for each spot
+    fetchTideDataForSpot(name);
 }
+
+async function fetchTideDataForSpot(spotName) {
+    try {
+        const response = await fetch(`http://localhost:3000/tide-data?lat=36.9514&lng=-121.9664`);
+        const data = await response.json();
+
+        if (!data.data || data.data.length === 0) {
+            document.getElementById(`tide-${spotName}`).innerText = "No tide data";
+            return;
+        }
+
+        const latestTide = data.data[0];
+        const tideHeightFeet = (latestTide.height * 3.28084).toFixed(2); // Convert to feet
+        let tideType = latestTide.type.charAt(0).toUpperCase() + latestTide.type.slice(1);
+        let tideTrend = "Unknown";
+
+        if (data.data.length > 1) {
+            const nextTide = data.data[1];
+            tideTrend = nextTide.height > latestTide.height ? "Incoming" : "Outgoing";
+        }
+
+        document.getElementById(`tide-${spotName}`).innerText = `${tideHeightFeet} ft - ${tideType} (${tideTrend})`;
+
+    } catch (error) {
+        console.error("Error fetching tide data:", error);
+        document.getElementById(`tide-${spotName}`).innerText = "Error loading tide";
+    }
+}
+
 
 
 // Auto-refresh every 30 minutes
