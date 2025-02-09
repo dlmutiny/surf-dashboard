@@ -1,99 +1,177 @@
-const BASE_URL = "http://74.207.247.30:3000";  // Change this to your server IP
+document.addEventListener('DOMContentLoaded', async function () {
+    const surfSpots = [
+        {
+            name: "The Hook",
+            lat: 36.9604,
+            lng: -121.9673,
+            swell: ["W", "NW", "S"],
+            wind: ["E", "NW", "glassy"],
+            tide: ["incoming", "medium"],
+            minPeriod: 10
+        },
+        {
+            name: "Jack’s (38th St.)",
+            lat: 36.9581,
+            lng: -121.9685,
+            swell: ["SSW", "SW", "W", "NW"],
+            wind: ["NE", "N", "NW", "glassy"],
+            tide: ["low"],
+            minPeriod: 10
+        },
+        {
+            name: "Capitola",
+            lat: 36.9762,
+            lng: -121.9536,
+            swell: ["S", "SSW", "W"],
+            wind: ["NW", "N", "glassy"],
+            tide: ["medium"],
+            minPeriod: 10
+        },
+        {
+            name: "Pleasure Point",
+            lat: 36.9565,
+            lng: -121.9647,
+            swell: ["SSW", "SW", "W", "WNW"],
+            wind: ["NE", "N", "NW", "glassy"],
+            tide: ["incoming", "medium"],
+            minPeriod: 10
+        },
+        {
+            name: "26th Ave.",
+            lat: 36.9625,
+            lng: -121.9615,
+            swell: ["SW", "W", "NW"],
+            wind: ["E"],
+            tide: ["low", "incoming"],
+            minPeriod: 10
+        },
+        {
+            name: "Manresa",
+            lat: 36.8795,
+            lng: -121.8415,
+            swell: ["W", "NW", "SW"],
+            wind: ["E", "glassy"],
+            tide: ["incoming", "medium"],
+            minPeriod: 10
+        },
+        {
+            name: "Steamer Lane",
+            lat: 36.9514,
+            lng: -122.0256,
+            swell: ["W", "S", "NW"],
+            wind: ["NE", "N", "NW", "glassy"],
+            tide: ["incoming", "low", "medium"],
+            minPeriod: 12
+        },
+        {
+            name: "Indicators",
+            lat: 36.9518,
+            lng: -122.0268,
+            swell: ["W", "S", "NW"],
+            wind: ["NE", "N", "NW", "glassy"],
+            tide: ["incoming", "low", "medium"],
+            minPeriod: 12
+        },
+        {
+            name: "Cowells",
+            lat: 36.9526,
+            lng: -122.0251,
+            swell: ["W", "NW", "S"],
+            wind: ["N", "NW"],
+            tide: ["low", "incoming"],
+            minPeriod: 10
+        },
+        {
+            name: "Four Mile",
+            lat: 37.0069,
+            lng: -122.1704,
+            swell: ["NW", "W", "WSW"],
+            wind: ["NW", "N", "NE"],
+            tide: ["incoming", "high"],
+            minPeriod: 12
+        },
+        {
+            name: "Waddell Creek",
+            lat: 37.0992,
+            lng: -122.2753,
+            swell: ["W", "NW", "N"],
+            wind: ["E"],
+            tide: ["incoming", "high"],
+            minPeriod: 10
+        }
+    ];
 
-const surfSpots = [
-        { name: "The Hook", idealSwells: ["W", "NW", "S"], idealWinds: ["E", "NW", "glassy"], idealTide: "incoming to medium", minPeriod: 10 },
-        { name: "Jack’s (38th St.)", idealSwells: ["SSW", "SW", "W", "NW"], idealWinds: ["NE", "N", "NW", "glassy"], idealTide: "low", minPeriod: 8 },
-        { name: "Capitola", idealSwells: ["S", "SSW", "W"], idealWinds: ["NW", "N", "glassy"], idealTide: "medium", minPeriod: 9 },
-        { name: "Pleasure Point", idealSwells: ["SSW", "SW", "W", "WNW"], idealWinds: ["NE", "N", "NW", "glassy"], idealTide: "incoming, medium", minPeriod: 10 },
-        { name: "26th Ave.", idealSwells: ["SW", "W", "NW"], idealWinds: ["E"], idealTide: "low pushing in", minPeriod: 9 },
-        { name: "Manresa", idealSwells: ["W", "NW", "SW"], idealWinds: ["E", "glassy"], idealTide: "incoming, works on any tide", minPeriod: 7 },
-        { name: "Steamer Lane", idealSwells: ["W", "S", "NW"], idealWinds: ["NE", "N", "NW", "glassy"], idealTide: "incoming, low to medium", minPeriod: 11 },
-        { name: "Indicators", idealSwells: ["W", "S", "NW"], idealWinds: ["NE", "N", "NW", "glassy"], idealTide: "incoming, low to medium", minPeriod: 10 },
-        { name: "Cowells", idealSwells: ["W", "NW", "S"], idealWinds: ["N", "NW"], idealTide: "low to incoming", minPeriod: 9 },
-        { name: "Four Mile", idealSwells: ["NW", "W", "WSW"], idealWinds: ["NW", "N", "NE"], idealTide: "incoming to high", minPeriod: 11 },
-        { name: "Waddell Creek", idealSwells: ["W", "NW", "N", "E", "S"], idealWinds: ["E"], idealTide: "incoming to high", minPeriod: 9 }
-];
-
-let tideData = null; // Store tide data once for all spots
-
-async function fetchTideData() {
-    try {
-        const response = await fetch(`${BASE_URL}/tide-data?lat=36.9514&lng=-121.9664`);
-        tideData = await response.json();
-
-        console.log("Fetched Tide Data:", tideData);
-    } catch (error) {
-        console.error("Error fetching tide data:", error);
-    }
-}
-
-async function fetchSurfData() {
-    for (const spot of surfSpots) {
+    async function fetchSurfData(lat, lng) {
         try {
-            const response = await fetch(`${BASE_URL}/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
+            const response = await fetch(`http://74.207.247.30:3000/surf-forecast?lat=${lat}&lng=${lng}`);
             const data = await response.json();
-
-            const windDirection = data.hours[0]?.windDirection?.noaa;
-            const swellHeight = data.hours[0]?.swellHeight?.noaa;
-            const swellDirection = data.hours[0]?.swellDirection?.noaa;
-
-            if (!windDirection || !swellHeight || !swellDirection) {
-                console.warn(`No valid data for ${spot.name}`);
-                continue;
-            }
-
-            displayAlert(spot.name, windDirection, swellDirection, swellHeight, getTideInfo());
+            return data.hours[0]; // Get the latest forecast data
         } catch (error) {
-            console.error(`Error fetching data for ${spot.name}:`, error);
+            console.error("Error fetching surf data:", error);
+            return null;
         }
     }
-}
 
-// Convert wind/swell degrees to cardinal directions
-function convertWindDirection(degrees) {
-    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    return directions[Math.round(degrees / 45) % 8];
-}
+    function convertDegreesToDirection(degrees) {
+        const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+        return directions[Math.round(degrees / 22.5) % 16];
+    }
 
-// Convert meters to feet
-function metersToFeet(meters) {
-    return (meters * 3.28084).toFixed(2);
-}
+    async function updateSurfAlerts() {
+        const alertsContainer = document.getElementById("alerts-container");
+        alertsContainer.innerHTML = "<p>Loading surf conditions...</p>";
 
-// Determine tide status
-function getTideInfo() {
-    if (!tideData || !tideData.data) return "Error loading tide";
+        const spotData = await Promise.all(surfSpots.map(async (spot) => {
+            const conditions = await fetchSurfData(spot.lat, spot.lng);
+            if (!conditions) return null;
 
-    const now = new Date();
-    let closestTide = tideData.data.reduce((prev, curr) => {
-        return Math.abs(new Date(curr.time) - now) < Math.abs(new Date(prev.time) - now) ? curr : prev;
-    });
+            const windDirection = convertDegreesToDirection(conditions.windDirection.noaa);
+            const swellDirection = convertDegreesToDirection(conditions.swellDirection.noaa);
+            const period = conditions.swellPeriod.noaa;
+            const waveHeight = conditions.waveHeight.noaa;
 
-    const tideHeightFeet = metersToFeet(closestTide.height);
-    const tideType = closestTide.type.charAt(0).toUpperCase() + closestTide.type.slice(1); // Capitalize tide type
+            let matchScore = 0;
 
-    return `${tideType} tide at ${tideHeightFeet} ft`;
-}
+            if (spot.swell.includes(swellDirection)) matchScore += 3;
+            if (spot.wind.includes(windDirection) || windDirection === "glassy") matchScore += 2;
+            if (spot.tide.includes("incoming")) matchScore += 2; // Placeholder since tide data is not included
+            if (period >= spot.minPeriod) matchScore += 2;
+            if (waveHeight >= 1.0) matchScore += 1; // Adjust threshold as needed
 
-// Display alerts
-function displayAlert(name, windDir, swellDir, swellHeight, tideInfo) {
-    const alertContainer = document.getElementById("alerts-container");
-    if (!alertContainer) return;
+            return {
+                name: spot.name,
+                matchScore,
+                conditions: {
+                    waveHeight,
+                    swellDirection,
+                    period,
+                    windDirection
+                }
+            };
+        }));
 
-    const alert = document.createElement("div");
-    alert.className = "alert-box";
-    alert.innerHTML = `
-        <strong>${name} ❌ Not Ideal</strong><br>
-        🌬️ Wind: ${convertWindDirection(windDir)} (${windDir}°)<br>
-        🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${metersToFeet(swellHeight)} ft<br>
-        🌊 Tide: ${tideInfo}
-    `;
+        const sortedSpots = spotData.filter(Boolean).sort((a, b) => b.matchScore - a.matchScore);
 
-    alertContainer.appendChild(alert);
-}
+        alertsContainer.innerHTML = "";
+        sortedSpots.forEach((spot) => {
+            const spotElement = document.createElement("div");
+            spotElement.className = "alert-item";
+            spotElement.innerHTML = `
+                <h3>${spot.name}</h3>
+                <p>🌊 Wave Height: ${spot.conditions.waveHeight}m</p>
+                <p>🌊 Swell: ${spot.conditions.swellDirection}</p>
+                <p>⌛ Period: ${spot.conditions.period}s</p>
+                <p>💨 Wind: ${spot.conditions.windDirection}</p>
+                <p>🔥 Match Score: ${spot.matchScore}</p>
+            `;
+            alertsContainer.appendChild(spotElement);
+        });
 
-// Auto-refresh every 30 minutes
-setInterval(fetchSurfData, 1800000);
+        if (sortedSpots.length === 0) {
+            alertsContainer.innerHTML = "<p>No matching surf conditions found.</p>";
+        }
+    }
 
-// Fetch tide data once on load
-fetchTideData().then(fetchSurfData);
+    updateSurfAlerts();
+    setInterval(updateSurfAlerts, 30 * 60 * 1000); // Update every 30 minutes
+});
