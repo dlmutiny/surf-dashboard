@@ -10,7 +10,7 @@ app.use(cors());
 app.get("/tide-data", async (req, res) => {
     try {
         const { lat, lng } = req.query;
-        const apiKey = "YOUR_STORMGLASS_API_KEY";
+        const apiKey = "711783d0-e669-11ef-9159-0242ac130003-71178470-e669-11ef-9159-0242ac130003";
 
         const response = await axios.get(
             `https://api.stormglass.io/v2/tide/extremes/point?lat=${lat}&lng=${lng}`,
