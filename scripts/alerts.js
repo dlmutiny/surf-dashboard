@@ -70,13 +70,32 @@ setInterval(fetchSurfData, 1800000);
 // Fetch tide data once
 async function fetchTideData() {
     try {
-        const response = await fetch(`${BASE_URL}/tide-data?lat=36.9514&lng=-121.9664`);
+        const response = await fetch(`http://localhost:3000/tide-data?lat=36.9514&lng=-121.9664`);
         const data = await response.json();
+
+        if (!data.data || data.data.length === 0) {
+            console.warn("No valid tide data available.");
+            return;
+        }
+
+        // Get the latest tide entry
+        const latestTide = data.data[0];
+        const tideHeightFeet = (latestTide.height * 3.28084).toFixed(2); // Convert to feet
+
+        let tideType = latestTide.type.charAt(0).toUpperCase() + latestTide.type.slice(1); // High / Low
+
+        // Check for incoming or outgoing tide
+        let tideTrend = "Unknown";
+        if (data.data.length > 1) {
+            const nextTide = data.data[1];
+            tideTrend = nextTide.height > latestTide.height ? "Incoming" : "Outgoing";
+        }
 
         const tideInfo = document.getElementById("tide-info");
         if (tideInfo) {
-            tideInfo.innerHTML = `🌊 Tide: ${data.data[0].height}m at ${new Date(data.data[0].time).toLocaleTimeString()}`;
+            tideInfo.innerHTML = `🌊 Tide: ${tideHeightFeet} ft - ${tideType} (${tideTrend})`;
         }
+
     } catch (error) {
         console.error("Error fetching tide data:", error);
     }
