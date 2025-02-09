@@ -53,16 +53,16 @@ function displayAlert(name, isGood, windDir, swellDir, swellHeight) {
     if (!alertContainer) return;
 
     const alert = document.createElement("div");
-    alert.className = `alert ${isGood ? "good" : "bad"}`;
+    alert.className = `alert-box ${isGood ? "good" : "bad"}`;
     alert.innerHTML = `
-        <strong>${name}</strong>: 
-        ${isGood ? "✅ Good Conditions" : "❌ Not Ideal"} <br>
+        <strong>${name} ${isGood ? "✅" : "❌ Not Ideal"}</strong>
         🌬️ Wind: ${convertWindDirection(windDir)} (${windDir}°) <br>
         🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${swellHeight}m
     `;
 
     alertContainer.appendChild(alert);
 }
+
 
 // Auto-refresh every 30 minutes
 setInterval(fetchSurfData, 1800000);
