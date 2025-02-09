@@ -2,7 +2,7 @@
 
 async function fetchBuoyData() {
     try {
-        const response = await fetch('/api/noaa-buoy');
+        const response = await fetch('http://74.207.247.30:3000/api/noaa-buoy');
         if (!response.ok) throw new Error('Failed to fetch buoy data');
 
         const data = await response.text();
