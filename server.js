@@ -1,9 +1,12 @@
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors');  // Import CORS
 
 const app = express();
 const PORT = 3000;
 
+// Enable CORS
+app.use(cors());
 
 app.get('/api/noaa-buoy', async (req, res) => {
     try {
@@ -26,5 +29,5 @@ app.get('/api/noaa-buoy', async (req, res) => {
 });
 
 app.listen(3000, '0.0.0.0', () => {
-    console.log('Server is running on IPv4 port 3000');
+    console.log(`Server is running on IPv4 port ${PORT}`);
 });
