@@ -4,69 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surf Forecast Dashboard</title>
-    
-    <!-- Stylesheet -->
-    <link rel="stylesheet" href="styles/main.css">
-
-    <!-- Windy API -->
+    <link rel="stylesheet" href="styles.css">
     <script src="https://api.windy.com/assets/libBoot.js"></script>
-    <script>
-    const options = {
-        key: 'y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH',  // Replace with your Windy API Key
-        lat: 36.9514,
-        lon: -121.9664,
-        zoom: 5,
-        overlay: 'wind',
-    };
-
-    function initializeWindyMap() {
-        if (window.Windy) {
-            windyInit(options, windyAPI => {
-                const { map } = windyAPI;
-                map.setView([options.lat, options.lon], options.zoom);
-            });
-        } else {
-            console.error("Windy API is not loaded correctly.");
-        }
-    }
-
-    window.onload = initializeWindyMap;
-    </script>
-
-
-    <!-- Leaflet Map (Required for Windy API) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
 </head>
 <body>
-    <!-- Main Container -->
-    <div id="container">
-        <!-- Windy Map -->
-        <div id="windy-map"></div>
 
-        <!-- Surf Alerts (Overlaid on Windy Map) -->
-        <div id="alerts-container">
-            <h2>Surf Spot Alerts</h2>
-            <div id="surf-alerts"></div>
-            <div id="tide-info"></div>
-        </div>
+    <!-- Windy Map Container -->
+    <div id="windy-map"></div>
+
+    <!-- Surf Alerts Overlay -->
+    <div id="surf-alerts">
+        <h2>Surf Spot Alerts</h2>
+        <div id="alerts-container"></div>
     </div>
 
-    <!-- JavaScript Files -->
-    <script src="scripts/config.js"></script>
-    <script src="scripts/windmap.js"></script>
-    <script src="scripts/alerts.js"></script>
-    <script src="scripts/forecast.js"></script>
-    <script src="scripts/tides.js"></script>
+    <script src="windmap.js"></script>
+    <script src="alerts.js"></script>
 
-    <script>
-        // Initialize map and fetch data on load
-        window.onload = function () {
-            initializeWindyMap();
-            fetchSurfData();
-            fetchTideData();
-        };
-    </script>
 </body>
 </html>
-
