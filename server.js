@@ -10,14 +10,18 @@ app.use(cors());
 // NOAA Buoy Data Route
 app.get('/api/noaa-buoy', async (req, res) => {
     try {
-        const buoyUrl = 'https://www.ndbc.noaa.gov/data/realtime2/46284.txt';
-        const response = await axios.get(buoyUrl);
-        res.send(response.data);
+        const response = await fetch('https://www.ndbc.noaa.gov/data/realtime2/46284.txt');
+        if (!response.ok) {
+            throw new Error('Failed to fetch NOAA buoy data');
+        }
+        const data = await response.text();
+        res.send(data);
     } catch (error) {
-        console.error('Error fetching NOAA buoy data:', error.message);
+        console.error('Error fetching NOAA buoy data:', error);
         res.status(500).json({ error: 'Failed to fetch buoy data' });
     }
 });
+
 
 // Default Route
 app.get('/', (req, res) => {
