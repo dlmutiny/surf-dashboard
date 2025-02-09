@@ -22,28 +22,29 @@ function getWindDirection(degrees) {
 }
 
 // Fetch Stormglass data for each spot
-async function fetchStormglassData(spot) {
+async function fetchStormglassTide(spot) {
     try {
-        const url = `https://api.stormglass.io/v2/weather/point?lat=${spot.lat}&lng=${spot.lng}&params=windDirection,swellDirection`;
+        const tideUrl = `https://api.stormglass.io/v2/tide/extremes/point?lat=${spot.lat}&lng=${spot.lng}`;
 
-        const response = await fetch(url, {
+        const response = await fetch(tideUrl, {
             headers: { "Authorization": stormglassApiKey }
         });
 
-        const data = await response.json();
-        console.log(`🌊 Raw Stormglass API response for ${spot.name}:`, data);  
+        const tideData = await response.json();
+        console.log(`🌊 Tide data for ${spot.name}:`, tideData);
 
-        if (!response.ok || !data.hours || data.hours.length === 0) {
-            console.warn(`⚠ No valid data for ${spot.name}`);
+        if (!response.ok || !tideData.extremes) {
+            console.warn(`⚠ No valid tide data for ${spot.name}`);
             return null;
         }
 
-        return data.hours[0];  
+        return tideData.extremes;
     } catch (error) {
-        console.error(`🚨 Error fetching Stormglass data for ${spot.name}:`, error);
+        console.error(`🚨 Error fetching tide data for ${spot.name}:`, error);
         return null;
     }
 }
+
 
 
 // Display surf alerts
