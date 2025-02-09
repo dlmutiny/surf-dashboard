@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surf Forecast Dashboard</title>
-    <link rel="stylesheet" href="styles/main.css">
     <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
     <script src="https://api.windy.com/assets/libBoot.js"></script>
+    <script src="https://api.windy.com/assets/map-forecast/libForecast.js"></script>
+    <script src="scripts/alerts.js" defer></script>
+    <script src="scripts/windmap.js" defer></script>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <div id="windy-map"></div>
-    <div id="surf-alerts"></div>
-
-    <script src="scripts/windmap.js"></script>
-    <script src="scripts/alerts.js"></script>
+    <div id="windy"></div>
+    <div id="surf-alerts" class="overlay"></div>
+    <div id="tide-info" class="overlay-bottom"></div>
 </body>
 </html>
+
