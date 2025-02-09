@@ -4,20 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surf Forecast Dashboard</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
-    <script src="https://api.windy.com/assets/libBoot.js"></script>
 
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
+
+    <!-- Leaflet.js for map support -->
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+
+    <!-- Windy API Core -->
+    <script src="https://api.windy.com/assets/libBoot.js"></script>
 </head>
 <body>
+
     <h1>Surf Forecast Dashboard</h1>
+
     <!-- Windy Map Container -->
     <div id="windy" style="width: 100%; height: 100vh;"></div>
-    <div id="surf-alerts-container">
-        <h2>Surf Spot Alerts</h2>
-        <div id="surf-alerts"></div>
+        <div id="surf-alerts"></div> <!-- Alerts Overlay -->
     </div>
+
+    <!-- Scripts -->
+    <script src="scripts/config.js"></script>
     <script src="scripts/windmap.js"></script>
     <script src="scripts/alerts.js"></script>
+
 </body>
 </html>
