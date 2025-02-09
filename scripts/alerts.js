@@ -41,7 +41,7 @@ async function displaySurfAlerts() {
 
     for (const spot of surfSpots) {
         try {
-            const response = await fetch(`http://localhost:3000/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
+            const response = await fetch(`http://74.207.247.30:3000/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
             const surfData = await response.json();
 
             const windDirection = getCardinalDirection(surfData.windDirection);
