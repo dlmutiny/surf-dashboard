@@ -1,7 +1,8 @@
 const BASE_URL = "http://74.207.247.30:3000";  // Change this to your server IP
 
 const surfSpots = [
-        { name: "The Hook", idealSwells: ["W", "NW", "S"], idealWinds: ["E", "NW", "glassy"], idealTide: "incoming to medium", minPeriod: 10 },
+        //{ name: "The Hook", idealSwells: ["W", "NW", "S"], idealWinds: ["E", "NW", "glassy"], idealTide: "incoming to medium", minPeriod: 10 },
+        { name: "The Hook", idealSwells: ["W", "NW", "S"], idealWinds: ["E", "NW", "glassy"], idealTide: "incoming to medium" },
         { name: "Jack’s (38th St.)", idealSwells: ["SSW", "SW", "W", "NW"], idealWinds: ["NE", "N", "NW", "glassy"], idealTide: "low", minPeriod: 8 },
         { name: "Capitola", idealSwells: ["S", "SSW", "W"], idealWinds: ["NW", "N", "glassy"], idealTide: "medium", minPeriod: 9 },
         { name: "Pleasure Point", idealSwells: ["SSW", "SW", "W", "WNW"], idealWinds: ["NE", "N", "NW", "glassy"], idealTide: "incoming, medium", minPeriod: 10 },
