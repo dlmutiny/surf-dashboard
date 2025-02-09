@@ -12,26 +12,49 @@ const surfSpots = [
     { name: "Waddell Creek", lat: 37.1016, lng: -122.2737, swell: ["NW", "W", "N"], wind: ["E"], tide: "incoming to high" }
 ];
 
-async function fetchStormglassData(lat, lng) {
-    const response = await fetch(`http://localhost:3000/tide-data?lat=${lat}&lng=${lng}`);
-    const data = await response.json();
-    return data;
+// Fetch tide data once for all spots
+async function fetchTideData() {
+    const lat = 36.9514; // Central location for tide (The Hook)
+    const lng = -121.9664;
+    try {
+        const response = await fetch(`http://localhost:3000/tide-data?lat=${lat}&lng=${lng}`);
+        const data = await response.json();
+        return data.data[0]; // Latest tide data
+    } catch (error) {
+        console.error("Error fetching tide data:", error);
+        return null;
+    }
+}
+
+// Convert wind direction degrees to cardinal direction (N, NW, W, etc.)
+function getCardinalDirection(degrees) {
+    const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+    return directions[Math.round(degrees / 22.5) % 16];
 }
 
 async function displaySurfAlerts() {
     const alertsContainer = document.getElementById("surf-alerts");
     alertsContainer.innerHTML = '';
 
+    // Fetch tide data once
+    const tideData = await fetchTideData();
+
     for (const spot of surfSpots) {
         try {
-            const tideData = await fetchStormglassData(spot.lat, spot.lng);
-            const latestTide = tideData.data[0];
+            const response = await fetch(`http://localhost:3000/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
+            const surfData = await response.json();
+
+            const windDirection = getCardinalDirection(surfData.windDirection);
+            const tideHeight = tideData ? tideData.height : "Unknown";
+            const tideType = tideData ? tideData.type : "Unknown";
 
             const alertBox = document.createElement("div");
             alertBox.className = "alert-box";
             alertBox.innerHTML = `
                 <h3>${spot.name}</h3>
-                <p>Tide: ${latestTide.height}m (${latestTide.type})</p>
+                <p>🌬️ Wind: ${windDirection} (${surfData.windSpeed} mph)</p>
+                <p>🌊 Swell: ${surfData.swellHeight} ft, ${surfData.swellDirection}</p>
+                <p>🌏 Tide: ${tideHeight}m (${tideType})</p>
             `;
 
             alertsContainer.appendChild(alertBox);
