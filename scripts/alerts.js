@@ -24,14 +24,14 @@ function getWindDirection(degrees) {
 // Fetch Stormglass data for each spot
 async function fetchStormglassData(spot) {
     try {
-        const url = `https://api.stormglass.io/v2/weather/point?lat=${spot.lat}&lng=${spot.lng}&params=windDirection,swellDirection,tideHeight`;
-        
+        const url = `https://api.stormglass.io/v2/weather/point?lat=${spot.lat}&lng=${spot.lng}&params=windDirection,swellDirection`;
+
         const response = await fetch(url, {
             headers: { "Authorization": stormglassApiKey }
         });
 
         const data = await response.json();
-        console.log(`🌊 Raw Stormglass API response for ${spot.name}:`, data);  // <-- Add this line
+        console.log(`🌊 Raw Stormglass API response for ${spot.name}:`, data);  
 
         if (!response.ok || !data.hours || data.hours.length === 0) {
             console.warn(`⚠ No valid data for ${spot.name}`);
