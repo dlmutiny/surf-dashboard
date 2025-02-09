@@ -1,28 +1,29 @@
 const express = require('express');
-const cors = require('cors');
 const axios = require('axios');
-const path = require('path');
+const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
 
-const NOAA_BUOY_URL = "https://www.ndbc.noaa.gov/data/realtime2/46284.txt";
-
-// Endpoint to fetch NOAA buoy data and bypass CORS issues
+// NOAA Buoy Data Route
 app.get('/api/noaa-buoy', async (req, res) => {
     try {
-        const response = await axios.get(NOAA_BUOY_URL);
+        const buoyUrl = 'https://www.ndbc.noaa.gov/data/realtime2/46284.txt';
+        const response = await axios.get(buoyUrl);
         res.send(response.data);
     } catch (error) {
-        console.error("Error fetching NOAA buoy data:", error);
-        res.status(500).send("Failed to fetch buoy data");
+        console.error('Error fetching NOAA buoy data:', error.message);
+        res.status(500).json({ error: 'Failed to fetch buoy data' });
     }
 });
 
-// Start the server
+// Default Route
+app.get('/', (req, res) => {
+    res.send('Surf Forecast API Running');
+});
+
 app.listen(PORT, () => {
-    console.log(`Server is running on http://74.207.247.30:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
