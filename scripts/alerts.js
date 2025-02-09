@@ -1,157 +1,85 @@
-document.addEventListener("DOMContentLoaded", () => {
-    fetchStormglassData();
-    setInterval(fetchStormglassData, 30 * 60 * 1000); // Auto-refresh every 30 minutes
-});
-
-const surfSpots = [
-    {
-        name: "The Hook",
-        lat: 36.9514,
-        lng: -121.9664,
-        idealSwell: ["W", "NW", "S"],
-        idealWind: ["E", "NW", "glassy"],
-        idealTide: ["incoming", "medium"]
-    },
-    {
-        name: "Jack’s (38th St.)",
-        lat: 36.9525,
-        lng: -121.9652,
-        idealSwell: ["SSW", "SW", "W", "NW"],
-        idealWind: ["NE", "N", "NW", "glassy"],
-        idealTide: ["low"]
-    },
-    {
-        name: "Capitola",
-        lat: 36.9741,
-        lng: -121.9535,
-        idealSwell: ["S", "SSW", "W"],
-        idealWind: ["NW", "N", "glassy"],
-        idealTide: ["medium"]
-    },
-    {
-        name: "Pleasure Point",
-        lat: 36.9532,
-        lng: -121.9643,
-        idealSwell: ["SSW", "SW", "W", "WNW"],
-        idealWind: ["NE", "N", "NW", "glassy"],
-        idealTide: ["incoming", "medium"]
-    },
-    {
-        name: "26th Ave.",
-        lat: 36.9547,
-        lng: -121.9603,
-        idealSwell: ["SW", "W", "NW"],
-        idealWind: ["E"],
-        idealTide: ["low", "incoming"]
-    },
-    {
-        name: "Manresa",
-        lat: 36.9401,
-        lng: -121.8723,
-        idealSwell: ["W", "NW", "SW"],
-        idealWind: ["E", "glassy"],
-        idealTide: ["incoming"]
-    },
-    {
-        name: "Steamer Lane",
-        lat: 36.9512,
-        lng: -122.0262,
-        idealSwell: ["W", "S", "NW"],
-        idealWind: ["NE", "N", "NW", "glassy"],
-        idealTide: ["low", "medium", "incoming"]
-    },
-    {
-        name: "Indicators",
-        lat: 36.9504,
-        lng: -122.0285,
-        idealSwell: ["W", "S", "NW"],
-        idealWind: ["NE", "N", "NW", "glassy"],
-        idealTide: ["low", "medium", "incoming"]
-    },
-    {
-        name: "Cowells",
-        lat: 36.9511,
-        lng: -122.0268,
-        idealSwell: ["W", "NW", "S"],
-        idealWind: ["N", "NW"],
-        idealTide: ["low", "incoming"]
-    },
-    {
-        name: "Four Mile",
-        lat: 37.0168,
-        lng: -122.1561,
-        idealSwell: ["NW", "W", "WSW"],
-        idealWind: ["NW", "N", "NE"],
-        idealTide: ["incoming", "high"]
-    },
-    {
-        name: "Waddell Creek",
-        lat: 37.1016,
-        lng: -122.2737,
-        idealSwell: ["NW", "W", "N", "S"],
-        idealWind: ["E"],
-        idealTide: ["incoming", "high"]
-    }
-];
-
 const stormglassApiKey = "711783d0-e669-11ef-9159-0242ac130003-71178470-e669-11ef-9159-0242ac130003";
 
-async function fetchStormglassData() {
-    console.log("Fetching Surf Data...");
-
-    for (const spot of surfSpots) {
-        try {
-            const response = await fetch(`https://api.stormglass.io/v2/weather/point?lat=${spot.lat}&lng=${spot.lng}&params=windDirection,swellDirection,tideHeight`, {
-                headers: { "Authorization": stormglassApiKey }
-            });
-
-            if (!response.ok) {
-                console.error(`Error fetching Stormglass data: ${response.statusText}`);
-                continue;
-            }
-
-            const data = await response.json();
-            displaySurfAlerts(spot, data);
-        } catch (error) {
-            console.error("Error fetching Stormglass data:", error);
-        }
-    }
-}
-
-function displaySurfAlerts(spot, data) {
-    const windDirection = getWindDirection(data.hours[0]?.windDirection?.noaa);
-    const swellDirection = getWindDirection(data.hours[0]?.swellDirection?.noaa);
-    const tideHeight = data.hours[0]?.tideHeight?.noaa ?? "Unknown";
-
-    const windMatch = spot.idealWind.includes(windDirection);
-    const swellMatch = spot.idealSwell.includes(swellDirection);
-    const tideMatch = spot.idealTide.includes("incoming") || spot.idealTide.includes("medium");
-
-    if (windMatch && swellMatch && tideMatch) {
-        createAlertOverlay(spot.name, windDirection, swellDirection, tideHeight);
-    }
-}
-
-function createAlertOverlay(spotName, wind, swell, tide) {
-    const alertContainer = document.getElementById("surf-alerts");
-    
-    if (!alertContainer) return;
-
-    const alertBox = document.createElement("div");
-    alertBox.className = "alert-box";
-    alertBox.innerHTML = `
-        <strong>${spotName}</strong><br>
-        ✅ Wind: ${wind} | 🌊 Swell: ${swell} | 🌊 Tide: ${tide} ft
-    `;
-
-    alertContainer.appendChild(alertBox);
-}
+// Surf spots with lat/lng and preferred conditions
+const surfSpots = [
+    { name: "The Hook", lat: 36.9514, lng: -121.9664, swell: ["W", "NW", "S"], wind: ["E", "NW", "glassy"], tide: "incoming to medium" },
+    { name: "Jack’s (38th St.)", lat: 36.9525, lng: -121.9652, swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: "low tide" },
+    { name: "Capitola", lat: 36.9741, lng: -121.9535, swell: ["S", "SSW", "W"], wind: ["NW", "N", "glassy"], tide: "Medium" },
+    { name: "Pleasure Point", lat: 36.9532, lng: -121.9643, swell: ["SSW", "SW", "W", "WNW"], wind: ["NE", "N", "NW", "glassy"], tide: "incoming, medium" },
+    { name: "26th Ave.", lat: 36.9547, lng: -121.9603, swell: ["SW", "W", "NW"], wind: ["E"], tide: "low tide pushing in" },
+    { name: "Manresa", lat: 36.9401, lng: -121.8723, swell: ["W", "NW", "SW"], wind: ["E", "glassy"], tide: "incoming, less tide-sensitive" },
+    { name: "Steamer Lane", lat: 36.9512, lng: -122.0262, swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: "low to medium, incoming" },
+    { name: "Indicators", lat: 36.9504, lng: -122.0285, swell: ["W", "S", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: "low to medium, incoming" },
+    { name: "Cowells", lat: 36.9511, lng: -122.0268, swell: ["W", "NW", "S"], wind: ["N", "NW"], tide: "low to incoming" },
+    { name: "Four Mile", lat: 37.0168, lng: -122.1561, swell: ["NW", "W", "WSW"], wind: ["NW", "N", "NE"], tide: "incoming to high" },
+    { name: "Waddell Creek", lat: 37.1016, lng: -122.2737, swell: ["W", "NW", "N"], wind: ["E"], tide: "incoming to high" }
+];
 
 // Convert degrees to cardinal direction
 function getWindDirection(degrees) {
-    if (degrees === undefined) return "Unknown";
-
     const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-    const index = Math.round(degrees / 22.5) % 16;
-    return directions[index];
+    return directions[Math.round(degrees / 22.5) % 16];
 }
+
+// Fetch Stormglass data for each spot
+async function fetchStormglassData(spot) {
+    try {
+        const url = `https://api.stormglass.io/v2/weather/point?lat=${spot.lat}&lng=${spot.lng}&params=windDirection,swellDirection,tideHeight`;
+        
+        const response = await fetch(url, {
+            headers: { "Authorization": stormglassApiKey }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.hours || data.hours.length === 0) {
+            console.warn(`⚠ No valid data for ${spot.name}`);
+            return null;
+        }
+
+        return data.hours[0];  // Get the first forecast hour
+    } catch (error) {
+        console.error(`🚨 Error fetching Stormglass data for ${spot.name}:`, error);
+        return null;
+    }
+}
+
+// Display surf alerts
+async function displaySurfAlerts() {
+    console.log("Fetching Surf Data...");
+    
+    const container = document.getElementById("surf-alerts");
+    if (!container) return;
+    container.innerHTML = "";
+
+    for (let spot of surfSpots) {
+        const data = await fetchStormglassData(spot);
+
+        if (!data) continue;
+
+        const windDir = data.windDirection?.noaa ? getWindDirection(data.windDirection.noaa) : "Unknown";
+        const swellDir = data.swellDirection?.noaa ? getWindDirection(data.swellDirection.noaa) : "Unknown";
+        const tideHeight = data.tideHeight?.noaa ? `${data.tideHeight.noaa.toFixed(2)}m` : "Unknown";
+
+        const isIdealWind = spot.wind.includes(windDir) || windDir === "glassy";
+        const isIdealSwell = spot.swell.includes(swellDir);
+
+        let alertText = `<strong>${spot.name}</strong><br>`;
+        alertText += isIdealWind ? "✅ Wind is ideal" : `❌ Wind not ideal (${windDir})`;
+        alertText += isIdealSwell ? " ✅ Swell is ideal" : ` ⚠️ Swell direction unknown (${swellDir})`;
+        alertText += ` 🌊 Tide: ${tideHeight}`;
+
+        if (isIdealWind && isIdealSwell) {
+            let alertBox = document.createElement("div");
+            alertBox.className = "surf-alert";
+            alertBox.innerHTML = alertText;
+            container.appendChild(alertBox);
+        }
+    }
+
+    console.log("✅ Surf Alerts Updated!");
+}
+
+// Auto-refresh every 30 minutes
+setInterval(displaySurfAlerts, 30 * 60 * 1000);
+window.onload = displaySurfAlerts;
