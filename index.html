@@ -8,10 +8,11 @@
     <!-- CSS Styles -->
     <link rel="stylesheet" href="styles/main.css">
 
-    <!-- Windy and Leaflet Libraries -->
-    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script> // must be listed before api.windy.com/assets/libBoot.js
+    <!-- Leaflet & Windy Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script> 
     <script src="https://api.windy.com/assets/libBoot.js"></script>
-    
+
 </head>
 <body>
 
@@ -21,11 +22,14 @@
     <!-- Surf Alerts Overlay -->
     <div id="surf-alerts">
         <h2>Surf Spot Alerts</h2>
-        <div id="alerts-container"></div>
+        <div id="alerts-container">Loading surf conditions...</div>
     </div>
 
     <!-- Tide Information -->
-    <div id="tide-info"></div>
+    <div id="tide-info">
+        <h2>Tide Information</h2>
+        <div id="tide-container">Loading tide data...</div>
+    </div>
 
     <!-- JavaScript Files -->
     <script src="scripts/windmap.js"></script>
