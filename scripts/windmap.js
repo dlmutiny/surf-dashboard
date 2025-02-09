@@ -8,7 +8,8 @@ const options = {
 
 function initializeWindyMap() {
     if (typeof windyInit === 'undefined') {
-        console.error("Windy API is not loaded correctly.");
+        console.error("❌ Windy API is not loaded correctly. Retrying...");
+        setTimeout(initializeWindyMap, 2000); // Retry after 2 seconds
         return;
     }
 
@@ -18,6 +19,5 @@ function initializeWindyMap() {
     });
 }
 
-window.onload = initializeWindyMap;
-
-
+// Ensure the Windy library is loaded before initializing
+document.addEventListener("DOMContentLoaded", initializeWindyMap);
