@@ -70,3 +70,4 @@ app.get('/tide-data', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Surf Forecast API is running on port ${PORT}`);
 });
+
