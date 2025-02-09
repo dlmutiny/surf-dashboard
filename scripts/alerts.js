@@ -97,5 +97,3 @@ setInterval(fetchSurfData, 1800000);
 
 // Fetch tide data once on load
 fetchTideData().then(fetchSurfData);
-
-
