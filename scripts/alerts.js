@@ -14,6 +14,19 @@ const surfSpots = [
     { name: "Waddell Creek", lat: 37.1016, lng: -122.2737, swell: ["NW", "W", "N"], wind: ["E"], tide: "incoming to high" }
 ];
 
+let tideData = null; // Store tide data once for all spots
+
+async function fetchTideData() {
+    try {
+        const response = await fetch(`${BASE_URL}/tide-data?lat=36.9514&lng=-121.9664`);
+        tideData = await response.json();
+
+        console.log("Fetched Tide Data:", tideData);
+    } catch (error) {
+        console.error("Error fetching tide data:", error);
+    }
+}
+
 async function fetchSurfData() {
     for (const spot of surfSpots) {
         try {
@@ -29,12 +42,7 @@ async function fetchSurfData() {
                 continue;
             }
 
-            const windMatch = convertWindDirection(windDirection) === spot.idealWind;
-            const swellMatch = convertWindDirection(swellDirection) === spot.idealSwell;
-            const isGood = windMatch && swellMatch;
-
-            displayAlert(spot.name, isGood, windDirection, swellDirection, swellHeight);
-
+            displayAlert(spot.name, windDirection, swellDirection, swellHeight, getTideInfo());
         } catch (error) {
             console.error(`Error fetching data for ${spot.name}:`, error);
         }
@@ -47,90 +55,47 @@ function convertWindDirection(degrees) {
     return directions[Math.round(degrees / 45) % 8];
 }
 
+// Convert meters to feet
+function metersToFeet(meters) {
+    return (meters * 3.28084).toFixed(2);
+}
+
+// Determine tide status
+function getTideInfo() {
+    if (!tideData || !tideData.data) return "Error loading tide";
+
+    const now = new Date();
+    let closestTide = tideData.data.reduce((prev, curr) => {
+        return Math.abs(new Date(curr.time) - now) < Math.abs(new Date(prev.time) - now) ? curr : prev;
+    });
+
+    const tideHeightFeet = metersToFeet(closestTide.height);
+    const tideType = closestTide.type.charAt(0).toUpperCase() + closestTide.type.slice(1); // Capitalize tide type
+
+    return `${tideType} tide at ${tideHeightFeet} ft`;
+}
+
 // Display alerts
-function displayAlert(name, isGood, windDir, swellDir, swellHeight) {
-    const alertContainer = document.getElementById("surf-alerts");
+function displayAlert(name, windDir, swellDir, swellHeight, tideInfo) {
+    const alertContainer = document.getElementById("alerts-container");
     if (!alertContainer) return;
 
     const alert = document.createElement("div");
-    alert.className = `alert-box ${isGood ? "good" : "bad"}`;
+    alert.className = "alert-box";
     alert.innerHTML = `
-        <strong>${name} ${isGood ? "✅" : "❌ Not Ideal"}</strong>
-        🌬️ Wind: ${convertWindDirection(windDir)} (${windDir}°) <br>
-        🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${swellHeight}m <br>
-        🌊 Tide: <span id="tide-${name}">Loading...</span>
+        <strong>${name} ❌ Not Ideal</strong><br>
+        🌬️ Wind: ${convertWindDirection(windDir)} (${windDir}°)<br>
+        🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${metersToFeet(swellHeight)} ft<br>
+        🌊 Tide: ${tideInfo}
     `;
 
     alertContainer.appendChild(alert);
-
-    // Fetch tide data for each spot
-    fetchTideDataForSpot(name);
 }
-
-async function fetchTideDataForSpot(spotName) {
-    try {
-        const response = await fetch(`http://localhost:3000/tide-data?lat=36.9514&lng=-121.9664`);
-        const data = await response.json();
-
-        if (!data.data || data.data.length === 0) {
-            document.getElementById(`tide-${spotName}`).innerText = "No tide data";
-            return;
-        }
-
-        const latestTide = data.data[0];
-        const tideHeightFeet = (latestTide.height * 3.28084).toFixed(2); // Convert to feet
-        let tideType = latestTide.type.charAt(0).toUpperCase() + latestTide.type.slice(1);
-        let tideTrend = "Unknown";
-
-        if (data.data.length > 1) {
-            const nextTide = data.data[1];
-            tideTrend = nextTide.height > latestTide.height ? "Incoming" : "Outgoing";
-        }
-
-        document.getElementById(`tide-${spotName}`).innerText = `${tideHeightFeet} ft - ${tideType} (${tideTrend})`;
-
-    } catch (error) {
-        console.error("Error fetching tide data:", error);
-        document.getElementById(`tide-${spotName}`).innerText = "Error loading tide";
-    }
-}
-
-
 
 // Auto-refresh every 30 minutes
 setInterval(fetchSurfData, 1800000);
 
-// Fetch tide data once
-async function fetchTideData() {
-    try {
-        const response = await fetch(`http://localhost:3000/tide-data?lat=36.9514&lng=-121.9664`);
-        const data = await response.json();
+// Fetch tide data once on load
+fetchTideData().then(fetchSurfData);
 
-        if (!data.data || data.data.length === 0) {
-            console.warn("No valid tide data available.");
-            return;
-        }
-
-        // Get the latest tide entry
-        const latestTide = data.data[0];
-        const tideHeightFeet = (latestTide.height * 3.28084).toFixed(2); // Convert to feet
-
-        let tideType = latestTide.type.charAt(0).toUpperCase() + latestTide.type.slice(1); // High / Low
-
-        // Check for incoming or outgoing tide
-        let tideTrend = "Unknown";
-        if (data.data.length > 1) {
-            const nextTide = data.data[1];
-            tideTrend = nextTide.height > latestTide.height ? "Incoming" : "Outgoing";
-        }
-
-        const tideInfo = document.getElementById("tide-info");
-        if (tideInfo) {
-            tideInfo.innerHTML = `🌊 Tide: ${tideHeightFeet} ft - ${tideType} (${tideTrend})`;
-        }
-
-    } catch (error) {
-        console.error("Error fetching tide data:", error);
-    }
-}
 
