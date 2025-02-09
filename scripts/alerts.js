@@ -1,72 +1,6 @@
-//const BASE_URL = "http://74.207.247.30:3000";  // Change this to your server IP
+const BASE_URL = "http://74.207.247.30:3000";  // Change this to your server IP
 
-async function fetchBuoyData() {
-    try {
-        const response = await fetch('http://74.207.247.30:3000/api/noaa-buoy');
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-        const jsonData = await response.json();
-        if (!jsonData || !jsonData.data) throw new Error("Invalid data structure received");
-
-        const rawData = jsonData.data.trim(); // Remove leading/trailing whitespace
-        const lines = rawData.split("\n"); // Split into lines
-        
-        console.log("Raw NOAA Buoy Data:", rawData);
-        console.log("Parsed Lines:", lines);
-
-        return lines;
-    } catch (error) {
-        console.error('Error fetching NOAA buoy data:', error);
-        return null;
-    }
-}
-
-// Call the function for debugging
-fetchBuoyData().then(lines => {
-    if (lines) {
-        console.log("Successfully fetched and parsed buoy data:", lines);
-    }
-});
-
-function parseBuoyData(data) {
-    const lines = data.trim().split("\n");
-    const latestData = lines[1].split(/\s+/); // Extract latest reading
-
-    const buoyInfo = {
-        time: `${latestData[0]}-${latestData[1]}-${latestData[2]} ${latestData[3]}:${latestData[4]} UTC`,
-        windDirection: convertWindDirection(parseFloat(latestData[5])),
-        windSpeed: parseFloat(latestData[6]), // Wind speed in m/s
-        waveHeight: parseFloat(latestData[8]), // Significant wave height in meters
-        swellPeriod: parseFloat(latestData[9]), // Swell period in seconds
-        swellDirection: convertWindDirection(parseFloat(latestData[10])),
-        secondarySwellPeriod: parseFloat(latestData[11]),
-        secondarySwellDirection: convertWindDirection(parseFloat(latestData[12])),
-        tideStatus: determineTideStatus(latestData[13]),
-        nextTideTime: latestData[14]
-    };
-
-    return buoyInfo;
-}
-
-function convertWindDirection(degrees) {
-    const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-    const index = Math.round(degrees / 22.5) % 16;
-    return directions[index];
-}
-
-function determineTideStatus(value) {
-    if (value.includes("H")) return "High";
-    if (value.includes("L")) return "Low";
-    if (value.includes("I")) return "Incoming";
-    if (value.includes("O")) return "Outgoing";
-    return "Unknown";
-}
-
-async function updateSurfAlerts() {
-    const buoyData = await fetchBuoyData();
-    if (!buoyData) return;
-
-    const spots = [
+const surfSpots = [
         { name: "The Hook", idealSwells: ["W", "NW", "S"], idealWinds: ["E", "NW", "glassy"], idealTide: "incoming to medium", minPeriod: 10 },
         { name: "Jack’s (38th St.)", idealSwells: ["SSW", "SW", "W", "NW"], idealWinds: ["NE", "N", "NW", "glassy"], idealTide: "low", minPeriod: 8 },
         { name: "Capitola", idealSwells: ["S", "SSW", "W"], idealWinds: ["NW", "N", "glassy"], idealTide: "medium", minPeriod: 9 },
@@ -78,40 +12,88 @@ async function updateSurfAlerts() {
         { name: "Cowells", idealSwells: ["W", "NW", "S"], idealWinds: ["N", "NW"], idealTide: "low to incoming", minPeriod: 9 },
         { name: "Four Mile", idealSwells: ["NW", "W", "WSW"], idealWinds: ["NW", "N", "NE"], idealTide: "incoming to high", minPeriod: 11 },
         { name: "Waddell Creek", idealSwells: ["W", "NW", "N", "E", "S"], idealWinds: ["E"], idealTide: "incoming to high", minPeriod: 9 }
-    ];
+];
 
-    const rankedSpots = spots.map(spot => {
-        let score = 0;
-        if (spot.idealSwells.includes(buoyData.swellDirection)) score += 2;
-        if (spot.idealWinds.includes(buoyData.windDirection)) score += 2;
-        if (buoyData.swellPeriod >= spot.minPeriod) score += 2; // Swell period must meet the minPeriod requirement
-        if (buoyData.tideStatus.includes(spot.idealTide)) score += 1;
+let tideData = null; // Store tide data once for all spots
 
-        return { ...spot, score };
-    }).sort((a, b) => b.score - a.score);
+async function fetchTideData() {
+    try {
+        const response = await fetch(`${BASE_URL}/tide-data?lat=36.9514&lng=-121.9664`);
+        tideData = await response.json();
 
-    displayAlerts(rankedSpots, buoyData);
+        console.log("Fetched Tide Data:", tideData);
+    } catch (error) {
+        console.error("Error fetching tide data:", error);
+    }
 }
 
-function displayAlerts(spots, buoyData) {
-    const alertContainer = document.getElementById("surf-alerts");
-    alertContainer.innerHTML = "";
+async function fetchSurfData() {
+    for (const spot of surfSpots) {
+        try {
+            const response = await fetch(`${BASE_URL}/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
+            const data = await response.json();
 
-    spots.forEach(spot => {
-        const alertItem = document.createElement("div");
-        alertItem.className = "alert-item";
-        alertItem.innerHTML = `
-            <h3>${spot.name} - Score: ${spot.score}</h3>
-            <p>Primary Swell: ${buoyData.swellDirection} at ${buoyData.swellPeriod}s</p>
-            <p>Secondary Swell: ${buoyData.secondarySwellDirection} at ${buoyData.secondarySwellPeriod}s</p>
-            <p>Wind: ${buoyData.windDirection} at ${buoyData.windSpeed} m/s</p>
-            <p>Wave Height: ${buoyData.waveHeight}m</p>
-            <p>Tide: ${buoyData.tideStatus} (Next: ${buoyData.nextTideTime})</p>
-            <p>Min Period for Spot: ${spot.minPeriod}s</p>
-        `;
-        alertContainer.appendChild(alertItem);
+            const windDirection = data.hours[0]?.windDirection?.noaa;
+            const swellHeight = data.hours[0]?.swellHeight?.noaa;
+            const swellDirection = data.hours[0]?.swellDirection?.noaa;
+
+            if (!windDirection || !swellHeight || !swellDirection) {
+                console.warn(`No valid data for ${spot.name}`);
+                continue;
+            }
+
+            displayAlert(spot.name, windDirection, swellDirection, swellHeight, getTideInfo());
+        } catch (error) {
+            console.error(`Error fetching data for ${spot.name}:`, error);
+        }
+    }
+}
+
+// Convert wind/swell degrees to cardinal directions
+function convertWindDirection(degrees) {
+    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    return directions[Math.round(degrees / 45) % 8];
+}
+
+// Convert meters to feet
+function metersToFeet(meters) {
+    return (meters * 3.28084).toFixed(2);
+}
+
+// Determine tide status
+function getTideInfo() {
+    if (!tideData || !tideData.data) return "Error loading tide";
+
+    const now = new Date();
+    let closestTide = tideData.data.reduce((prev, curr) => {
+        return Math.abs(new Date(curr.time) - now) < Math.abs(new Date(prev.time) - now) ? curr : prev;
     });
+
+    const tideHeightFeet = metersToFeet(closestTide.height);
+    const tideType = closestTide.type.charAt(0).toUpperCase() + closestTide.type.slice(1); // Capitalize tide type
+
+    return `${tideType} tide at ${tideHeightFeet} ft`;
 }
 
-document.addEventListener("DOMContentLoaded", updateSurfAlerts);
+// Display alerts
+function displayAlert(name, windDir, swellDir, swellHeight, tideInfo) {
+    const alertContainer = document.getElementById("alerts-container");
+    if (!alertContainer) return;
 
+    const alert = document.createElement("div");
+    alert.className = "alert-box";
+    alert.innerHTML = `
+        <strong>${name} ❌ Not Ideal</strong><br>
+        🌬️ Wind: ${convertWindDirection(windDir)} (${windDir}°)<br>
+        🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${metersToFeet(swellHeight)} ft<br>
+        🌊 Tide: ${tideInfo}
+    `;
+
+    alertContainer.appendChild(alert);
+}
+
+// Auto-refresh every 30 minutes
+setInterval(fetchSurfData, 1800000);
+
+// Fetch tide data once on load
+fetchTideData().then(fetchSurfData);
