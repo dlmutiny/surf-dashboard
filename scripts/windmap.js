@@ -1,5 +1,3 @@
-const windyAPIKey = "y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH";
-
 function initializeWindyMap() {
     if (typeof windyInit !== "function") {
         console.error("Windy API is not loaded correctly.");
@@ -7,18 +5,14 @@ function initializeWindyMap() {
     }
 
     windyInit({
-        key: 'y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH', // Your Windy API Key
-        lat: 30, // Adjust latitude to view more of the Pacific Ocean
-        lon: -180, // Adjust longitude for central Pacific
-        zoom: 1, // Lower zoom level to see a wider area
-        overlay: 'wind', // Default overlay
-    }, function (windyAPI) {
+        key: 'y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH', // Windy API Key
+        lat: 30, // Center on the Pacific Ocean
+        lon: -160,
+        zoom: 1, // More zoomed out
+        overlay: 'wind'
+    }, (windyAPI) => {
         console.log("✅ Windy Map initialized successfully!");
     });
 }
 
-
-// Delay execution to allow Windy to load
-window.onload = function () {
-    setTimeout(initializeWindyMap, 2000);
-};
+window.onload = initializeWindyMap;
