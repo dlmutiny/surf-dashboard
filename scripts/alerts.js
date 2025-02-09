@@ -12,57 +12,74 @@ const surfSpots = [
     { name: "Waddell Creek", lat: 37.1016, lng: -122.2737, swell: ["NW", "W", "N"], wind: ["E"], tide: "incoming to high" }
 ];
 
-// Fetch tide data once for all spots
-async function fetchTideData() {
-    const lat = 36.9514; // Central location for tide (The Hook)
-    const lng = -121.9664;
-    try {
-        const response = await fetch(`http://localhost:3000/tide-data?lat=${lat}&lng=${lng}`);
-        const data = await response.json();
-        return data.data[0]; // Latest tide data
-    } catch (error) {
-        console.error("Error fetching tide data:", error);
-        return null;
-    }
-}
 
-// Convert wind direction degrees to cardinal direction (N, NW, W, etc.)
-function getCardinalDirection(degrees) {
-    const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-    return directions[Math.round(degrees / 22.5) % 16];
-}
-
-async function displaySurfAlerts() {
-    const alertsContainer = document.getElementById("surf-alerts");
-    alertsContainer.innerHTML = '';
-
-    // Fetch tide data once
-    const tideData = await fetchTideData();
-
+async function fetchSurfData() {
     for (const spot of surfSpots) {
         try {
             const response = await fetch(`http://localhost:3000/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
-            const surfData = await response.json();
+            const data = await response.json();
 
-            const windDirection = getCardinalDirection(surfData.windDirection);
-            const tideHeight = tideData ? tideData.height : "Unknown";
-            const tideType = tideData ? tideData.type : "Unknown";
+            const windDirection = data.hours[0]?.windDirection?.noaa;
+            const swellHeight = data.hours[0]?.swellHeight?.noaa;
+            const swellDirection = data.hours[0]?.swellDirection?.noaa;
 
-            const alertBox = document.createElement("div");
-            alertBox.className = "alert-box";
-            alertBox.innerHTML = `
-                <h3>${spot.name}</h3>
-                <p>🌬️ Wind: ${windDirection} (${surfData.windSpeed} mph)</p>
-                <p>🌊 Swell: ${surfData.swellHeight} ft, ${surfData.swellDirection}</p>
-                <p>🌏 Tide: ${tideHeight}m (${tideType})</p>
-            `;
+            if (!windDirection || !swellHeight || !swellDirection) {
+                console.warn(`No valid data for ${spot.name}`);
+                continue;
+            }
 
-            alertsContainer.appendChild(alertBox);
+            const windMatch = convertWindDirection(windDirection) === spot.idealWind;
+            const swellMatch = convertWindDirection(swellDirection) === spot.idealSwell;
+            const isGood = windMatch && swellMatch;
+
+            displayAlert(spot.name, isGood, windDirection, swellDirection, swellHeight);
+
         } catch (error) {
             console.error(`Error fetching data for ${spot.name}:`, error);
         }
     }
 }
 
-displaySurfAlerts();
-setInterval(displaySurfAlerts, 1800000); // Auto-refresh every 30 minutes
+// Convert wind/swell degrees to cardinal directions
+function convertWindDirection(degrees) {
+    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    return directions[Math.round(degrees / 45) % 8];
+}
+
+// Display alerts
+function displayAlert(name, isGood, windDir, swellDir, swellHeight) {
+    const alertContainer = document.getElementById("surf-alerts");
+    if (!alertContainer) return;
+
+    const alert = document.createElement("div");
+    alert.className = `alert ${isGood ? "good" : "bad"}`;
+    alert.innerHTML = `
+        <strong>${name}</strong>: 
+        ${isGood ? "✅ Good Conditions" : "❌ Not Ideal"} <br>
+        🌬️ Wind: ${convertWindDirection(windDir)} (${windDir}°) <br>
+        🌊 Swell: ${convertWindDirection(swellDir)} (${swellDir}°) | ${swellHeight}m
+    `;
+
+    alertContainer.appendChild(alert);
+}
+
+// Auto-refresh every 30 minutes
+setInterval(fetchSurfData, 1800000);
+
+// Fetch tide data once
+async function fetchTideData() {
+    try {
+        const response = await fetch(`http://localhost:3000/tide-data?lat=36.9514&lng=-121.9664`);
+        const data = await response.json();
+
+        const tideInfo = document.getElementById("tide-info");
+        if (tideInfo) {
+            tideInfo.innerHTML = `🌊 Tide: ${data.data[0].height}m at ${new Date(data.data[0].time).toLocaleTimeString()}`;
+        }
+    } catch (error) {
+        console.error("Error fetching tide data:", error);
+    }
+}
+
+fetchSurfData();
+fetchTideData();
