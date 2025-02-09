@@ -5,69 +5,43 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-// Enable CORS for frontend requests
+// Use CORS to allow frontend requests
 app.use(cors());
 
-// Stormglass API Key
 const STORMGLASS_API_KEY = '711783d0-e669-11ef-9159-0242ac130003-71178470-e669-11ef-9159-0242ac130003';
 
-// Cache for tide data (since it doesn't need to be fetched repeatedly)
-let cachedTideData = null;
-let lastTideFetchTime = 0;
-
-// Fetch Surf Forecast Data
+// API route to fetch surf forecast from Stormglass.io
 app.get('/surf-forecast', async (req, res) => {
-    const { lat, lng } = req.query;
-    if (!lat || !lng) {
-        return res.status(400).json({ error: 'Missing lat/lng parameters' });
-    }
-
     try {
-        const response = await axios.get(`https://api.stormglass.io/v2/weather/point`, {
-            params: {
-                lat,
-                lng,
-                params: 'windDirection,swellHeight,swellDirection',
-            },
-            headers: { Authorization: STORMGLASS_API_KEY },
+        const { lat, lng } = req.query;
+        
+        if (!lat || !lng) {
+            return res.status(400).json({ error: "Latitude and longitude are required." });
+        }
+
+        const url = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lng}&params=waveHeight,windSpeed,windDirection,swellHeight,swellPeriod,swellDirection&source=noaa`;
+
+        console.log(`Fetching surf forecast from Stormglass.io: ${url}`);
+
+        const response = await axios.get(url, {
+            headers: { 'Authorization': STORMGLASS_API_KEY },
+            timeout: 10000
         });
 
-        res.json(response.data);
+        if (response.status === 200) {
+            console.log('Stormglass.io data retrieved successfully.');
+            return res.json(response.data);
+        } else {
+            console.error(`Stormglass.io responded with status: ${response.status}`);
+            return res.status(response.status).json({ error: 'Failed to fetch surf forecast' });
+        }
     } catch (error) {
-        console.error('Error fetching surf forecast:', error);
-        res.status(500).json({ error: 'Failed to fetch surf forecast' });
+        console.error('Error fetching Stormglass.io data:', error.message);
+        return res.status(500).json({ error: 'Failed to fetch surf forecast' });
     }
 });
 
-// Fetch Tide Data (Cache this to avoid multiple requests)
-app.get('/tide-data', async (req, res) => {
-    const { lat, lng } = req.query;
-    if (!lat || !lng) {
-        return res.status(400).json({ error: 'Missing lat/lng parameters' });
-    }
-
-    const now = Date.now();
-    if (cachedTideData && now - lastTideFetchTime < 6 * 60 * 60 * 1000) {
-        // Use cached tide data (valid for 6 hours)
-        return res.json(cachedTideData);
-    }
-
-    try {
-        const response = await axios.get(`https://api.stormglass.io/v2/tide/extremes/point`, {
-            params: { lat, lng },
-            headers: { Authorization: STORMGLASS_API_KEY },
-        });
-
-        cachedTideData = response.data;
-        lastTideFetchTime = now;
-        res.json(response.data);
-    } catch (error) {
-        console.error('Error fetching tide data:', error);
-        res.status(500).json({ error: 'Failed to fetch tide data' });
-    }
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
 });
-
-app.listen(PORT, () => {
-    console.log(`Surf Forecast API is running on port ${PORT}`);
-});
-
