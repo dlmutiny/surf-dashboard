@@ -1,28 +1,28 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Enable CORS for frontend requests
 app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Proxy endpoint for NOAA buoy data
+const NOAA_BUOY_URL = "https://www.ndbc.noaa.gov/data/realtime2/46284.txt";
+
+// Endpoint to fetch NOAA buoy data and bypass CORS issues
 app.get('/api/noaa-buoy', async (req, res) => {
-    const buoyId = req.query.buoy || '46284'; // Default to buoy 46284 if none provided
-    const url = `https://www.ndbc.noaa.gov/data/realtime2/${buoyId}.txt`;
-
     try {
-        const response = await axios.get(url);
+        const response = await axios.get(NOAA_BUOY_URL);
         res.send(response.data);
     } catch (error) {
-        console.error('Error fetching NOAA buoy data:', error);
-        res.status(500).json({ error: 'Failed to fetch NOAA buoy data' });
+        console.error("Error fetching NOAA buoy data:", error);
+        res.status(500).send("Failed to fetch buoy data");
     }
 });
 
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on http://74.207.247.30:${PORT}`);
+    console.log(`Server is running on http://74.207.247.30:${PORT}`);
 });
-
