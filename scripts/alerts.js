@@ -26,6 +26,12 @@ async function fetchTideData(spot) {
     try {
         const response = await fetch(`http://localhost:3000/tide-data?lat=${spot.lat}&lng=${spot.lng}`);
         const data = await response.json();
+
+        if (!data || !data.data || data.data.length === 0) {
+            console.warn(`⚠️ No tide data found for ${spot.name}`);
+            return null;
+        }
+
         console.log(`🌊 Tide data for ${spot.name}:`, data);
         return data;
     } catch (error) {
@@ -33,6 +39,7 @@ async function fetchTideData(spot) {
         return null;
     }
 }
+
 
 
 // Fetch surf forecast from Stormglass
