@@ -10,6 +10,29 @@
 
     <!-- Windy API -->
     <script src="https://api.windy.com/assets/libBoot.js"></script>
+    <script>
+    const options = {
+        key: 'y1esYKpYs4uYBBhxZtIH3nJ90gvCU7JH',  // Replace with your Windy API Key
+        lat: 36.9514,
+        lon: -121.9664,
+        zoom: 5,
+        overlay: 'wind',
+    };
+
+    function initializeWindyMap() {
+        if (window.Windy) {
+            windyInit(options, windyAPI => {
+                const { map } = windyAPI;
+                map.setView([options.lat, options.lon], options.zoom);
+            });
+        } else {
+            console.error("Windy API is not loaded correctly.");
+        }
+    }
+
+    window.onload = initializeWindyMap;
+    </script>
+
 
     <!-- Leaflet Map (Required for Windy API) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
