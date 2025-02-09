@@ -4,6 +4,7 @@ const axios = require('axios');
 const app = express();
 const PORT = 3000;
 
+
 app.get('/api/noaa-buoy', async (req, res) => {
     try {
         const buoyDataUrl = 'https://www.ndbc.noaa.gov/data/realtime2/46284.txt';
@@ -24,6 +25,6 @@ app.get('/api/noaa-buoy', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(3000, '0.0.0.0', () => {
+    console.log('Server is running on IPv4 port 3000');
 });
