@@ -1,3 +1,5 @@
+const BASE_URL = "http://74.207.247.30:3000";  // Change this to your server IP
+
 const surfSpots = [
     { name: "The Hook", lat: 36.9514, lng: -121.9664, swell: ["W", "NW", "S"], wind: ["E", "NW", "glassy"], tide: "incoming to medium" },
     { name: "Jack’s (38th St.)", lat: 36.9525, lng: -121.9652, swell: ["SSW", "SW", "W", "NW"], wind: ["NE", "N", "NW", "glassy"], tide: "low tide" },
@@ -12,11 +14,10 @@ const surfSpots = [
     { name: "Waddell Creek", lat: 37.1016, lng: -122.2737, swell: ["NW", "W", "N"], wind: ["E"], tide: "incoming to high" }
 ];
 
-
 async function fetchSurfData() {
     for (const spot of surfSpots) {
         try {
-            const response = await fetch(`http://localhost:3000/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
+            const response = await fetch(`${BASE_URL}/surf-forecast?lat=${spot.lat}&lng=${spot.lng}`);
             const data = await response.json();
 
             const windDirection = data.hours[0]?.windDirection?.noaa;
@@ -69,7 +70,7 @@ setInterval(fetchSurfData, 1800000);
 // Fetch tide data once
 async function fetchTideData() {
     try {
-        const response = await fetch(`http://localhost:3000/tide-data?lat=36.9514&lng=-121.9664`);
+        const response = await fetch(`${BASE_URL}/tide-data?lat=36.9514&lng=-121.9664`);
         const data = await response.json();
 
         const tideInfo = document.getElementById("tide-info");
@@ -81,5 +82,3 @@ async function fetchTideData() {
     }
 }
 
-fetchSurfData();
-fetchTideData();
