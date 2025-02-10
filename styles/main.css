@@ -35,10 +35,10 @@ body {
 
 #surf-alerts {
     position: absolute;
-    top: 20px;
+    top: 40px;
     left: 20px;
-    width: 280px;
-    max-height: 80vh;
+    width: 260px;
+    max-height: 60vh;
     overflow-y: auto;
     background: rgba(0, 0, 0, 0.6);
     color: white;
