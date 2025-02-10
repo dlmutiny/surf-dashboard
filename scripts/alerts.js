@@ -158,10 +158,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             spotElement.className = "alert-item";
             spotElement.innerHTML = `
                 <h3>${spot.name}</h3>
-                <p>🌊 Wave Height: ${spot.conditions.waveHeight}m</p>
-                <p>🌊 Swell: ${spot.conditions.swellDirection}</p>
-                <p>⌛ Period: ${spot.conditions.period}s</p>
-                <p>💨 Wind: ${spot.conditions.windDirection}</p>
                 <p>🔥 Match Score: ${spot.matchScore}</p>
             `;
             alertsContainer.appendChild(spotElement);
