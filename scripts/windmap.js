@@ -26,6 +26,19 @@ function initializeWindyMap(retries = 5) {
                 return;
             }
 
+            function highlightLowPressure() {
+                if (typeof windyAPI === "undefined") {
+                    console.error("Windy API not initialized yet.");
+                    return;
+            }
+
+            console.log("✅ Highlighting low-pressure systems...");
+
+          // Use "isobars" instead of "pressure" as the overlay
+            windyAPI.store.set("overlay", "isobars");
+        }
+
+
             pressureData.forEach(point => {
                 const { lat, lon, value } = point;
                 if (value < 1010) {  // Low-pressure threshold
