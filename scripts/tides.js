@@ -4,8 +4,7 @@ async function checkTideConditions() {
     const data = await response.json();
     if (!data.predictions) return;
 
-    const tideBox = document.getElementById("tide-info");
-    //let tideBox = document.getElementById("tideBox");
+    let tideBox = document.getElementById("tideBox");
     tideBox.innerHTML = `<strong>Tide: ${data.predictions[0].v} ft</strong>`;
 }
 
