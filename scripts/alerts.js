@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             lat: 36.9604,
             lng: -121.9673,
             swell: ["W", "NW", "S"],
-            wind: ["E", "NW", "glassy"],
+            wind: ["E", "NW"],
             tide: ["incoming", "medium"],
             minPeriod: 10
         },
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             lat: 36.9581,
             lng: -121.9685,
             swell: ["SSW", "SW", "W", "NW"],
-            wind: ["NE", "N", "NW", "glassy"],
+            wind: ["NE", "N", "NW"],
             tide: ["low"],
             minPeriod: 10
         },
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             lat: 36.9762,
             lng: -121.9536,
             swell: ["S", "SSW", "W"],
-            wind: ["NW", "N", "glassy"],
+            wind: ["NW", "N"],
             tide: ["medium"],
             minPeriod: 10
         },
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             lat: 36.9565,
             lng: -121.9647,
             swell: ["SSW", "SW", "W", "WNW"],
-            wind: ["NE", "N", "NW", "glassy"],
+            wind: ["NE", "N", "NW"],
             tide: ["incoming", "medium"],
             minPeriod: 10
         },
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             lat: 36.8795,
             lng: -121.8415,
             swell: ["W", "NW", "SW"],
-            wind: ["E", "glassy"],
+            wind: ["E"],
             tide: ["incoming", "medium"],
             minPeriod: 10
         },
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             lat: 36.9514,
             lng: -122.0256,
             swell: ["W", "S", "NW"],
-            wind: ["NE", "N", "NW", "glassy"],
+            wind: ["NE", "N", "NW"],
             tide: ["incoming", "low", "medium"],
             minPeriod: 12
         },
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             lat: 36.9518,
             lng: -122.0268,
             swell: ["W", "S", "NW"],
-            wind: ["NE", "N", "NW", "glassy"],
+            wind: ["NE", "N", "NW"],
             tide: ["incoming", "low", "medium"],
             minPeriod: 12
         },
@@ -103,7 +103,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function fetchSurfData(lat, lng) {
         try {
-            const response = await fetch(`http://74.207.247.30:3000/surf-forecast?lat=${lat}&lng=${lng}`);
+            //const response = await fetch(`http://74.207.247.30:3000/surf-forecast?lat=${lat}&lng=${lng}`);
+            const response = await fetch(`https://experimentalsurfboards.com:3000/surf-forecast?lat=${lat}&lng=${lng}`);
             const data = await response.json();
             return data.hours[0]; // Get the latest forecast data
         } catch (error) {
