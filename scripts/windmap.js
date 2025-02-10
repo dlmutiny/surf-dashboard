@@ -3,7 +3,7 @@ const options = {
     lat: 35, 
     lon: -140, 
     zoom: 1, // Zoomed out to show more of the Pacific Ocean
-    layer: 'wind'
+    layer: 'pressure' // Set to pressure for low-pressure visualization
 };
 
 function initializeWindyMap(retries = 5) {
@@ -16,8 +16,31 @@ function initializeWindyMap(retries = 5) {
     }
 
     windyInit(options, windyAPI => {
-        const { map } = windyAPI;
+        const { map, store, overlays } = windyAPI;
         console.log("✅ Windy Map initialized successfully!", map);
+
+        // Function to highlight low-pressure zones
+        function highlightLowPressure() {
+            overlays.pressure.on('particleUpdate', () => {
+                const pressureData = store.get('pressure');
+                if (!pressureData) return;
+
+                pressureData.forEach(point => {
+                    const { lat, lon, value } = point;
+                    if (value < 1010) {  // Low-pressure threshold
+                        L.marker([lat, lon], {
+                            icon: L.divIcon({
+                                className: 'low-pressure-marker',
+                                html: '<span style="color:red; font-size:16px;">L</span>',
+                                iconSize: [20, 20]
+                            })
+                        }).addTo(map);
+                    }
+                });
+            });
+        }
+
+        highlightLowPressure();
     });
 }
 
