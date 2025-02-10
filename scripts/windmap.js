@@ -16,31 +16,32 @@ function initializeWindyMap(retries = 5) {
     }
 
     windyInit(options, windyAPI => {
-        const { map, store, overlays } = windyAPI;
+        const { map, store } = windyAPI;
         console.log("✅ Windy Map initialized successfully!", map);
 
-        // Function to highlight low-pressure zones
         function highlightLowPressure() {
-            overlays.pressure.on('particleUpdate', () => {
-                const pressureData = store.get('pressure');
-                if (!pressureData) return;
+            const pressureData = store.get('pressure'); // Get pressure data
+            if (!pressureData) {
+                console.warn("⚠️ No pressure data available.");
+                return;
+            }
 
-                pressureData.forEach(point => {
-                    const { lat, lon, value } = point;
-                    if (value < 1010) {  // Low-pressure threshold
-                        L.marker([lat, lon], {
-                            icon: L.divIcon({
-                                className: 'low-pressure-marker',
-                                html: '<span style="color:red; font-size:16px;">L</span>',
-                                iconSize: [20, 20]
-                            })
-                        }).addTo(map);
-                    }
-                });
+            pressureData.forEach(point => {
+                const { lat, lon, value } = point;
+                if (value < 1010) {  // Low-pressure threshold
+                    L.marker([lat, lon], {
+                        icon: L.divIcon({
+                            className: 'low-pressure-marker',
+                            html: '<span style="color:red; font-size:16px;">L</span>',
+                            iconSize: [20, 20]
+                        })
+                    }).addTo(map);
+                }
             });
         }
 
-        highlightLowPressure();
+        // Run the function after a small delay to ensure data is loaded
+        setTimeout(highlightLowPressure, 3000);
     });
 }
 
