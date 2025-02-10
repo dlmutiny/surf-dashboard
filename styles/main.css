@@ -3,6 +3,27 @@ body {
     font-family: Arial, sans-serif;
 }
 
+
+#tide-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 120px; /* Adjust height as needed */
+    background: rgba(255, 255, 255, 0.8); /* Slight transparency */
+    backdrop-filter: blur(5px); /* Smooth effect */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+#tide-chart {
+    width: 90%;
+    height: 100%;
+}
+
+
 #windy-map {
     position: absolute;
     top: 0;
