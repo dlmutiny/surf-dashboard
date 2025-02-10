@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function fetchSurfData(lat, lng) {
         try {
-            const response = await fetch(`https://experimentalsurfboards.com/surf-forecast/?lat=${lat}&lng=${lng}`);
+            const response = await fetch(`https://experimentalsurfboards.com/surf-forecast/?lat=${lat}&lng=${lng}&source=sg`);
             const data = await response.json();
             return data.hours[0]; // Get the latest forecast data
         } catch (error) {
