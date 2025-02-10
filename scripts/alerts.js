@@ -15,14 +15,18 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function fetchSurfData(lat, lng) {
         try {
-            const response = await fetch(`https://experimentalsurfboards.com/surf-forecast/?lat=${lat}&lng=${lng}&source=sg`);
+            const response = await fetch(`https://experimentalsurfboards.com/surf-forecast/?lat=${lat}&lng=${lng}`);
             const data = await response.json();
-            return data.hours; // Return all forecast data for multiple hours
+
+            console.log(`API response for ${lat}, ${lng}:`, data); // DEBUGGING LOG
+
+            return data.hours; // Return all forecast data
         } catch (error) {
             console.error("Error fetching surf data:", error);
             return null;
         }
     }
+
 
     function convertDegreesToDirection(degrees) {
         const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
