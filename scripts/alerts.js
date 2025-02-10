@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function fetchSurfData(lat, lng) {
         try {
-            const response = await fetch(`https://74.207.247.30:3000/surf-forecast?lat=${lat}&lng=${lng}`);
+            const response = await fetch(`http://74.207.247.30:3000/surf-forecast?lat=${lat}&lng=${lng}`);
             const data = await response.json();
             return data.hours[0]; // Get the latest forecast data
         } catch (error) {
